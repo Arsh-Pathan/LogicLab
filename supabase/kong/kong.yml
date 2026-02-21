@@ -1,0 +1,30 @@
+_format_version: "1.1"
+
+services:
+  - name: auth
+    url: http://auth:9999
+    routes:
+      - name: auth
+        paths:
+          - /auth/v1
+
+  - name: rest
+    url: http://rest:3000
+    routes:
+      - name: rest
+        paths:
+          - /rest/v1
+    plugins:
+      - name: key-auth
+        config:
+          key_names: [apikey]
+
+plugins:
+  - name: cors
+    config:
+      origins: ["*"]
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
+      headers: ["DNT", "Keep-Alive", "User-Agent", "X-Requested-With", "If-Modified-Since", "Cache-Control", "Content-Type", "Range", "Authorization", "apikey", "X-Client-Info"]
+      exposed_headers: ["Content-Length", "Content-Range"]
+      credentials: true
+      max_age: 3600

@@ -1,0 +1,245 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Inter:wght@100..900&display=swap');
+@import "tailwindcss";
+
+/* ============================================================
+   LogicLab — Refined Anthropic Design System (v5)
+   ============================================================ */
+
+:root {
+  /* Core Sophisticated Palette */
+  --bg-app: #fdfdfc;          /* Soft beige/paper */
+  --bg-sidebar: #f7f7f5;      /* Slightly deeper off-white */
+  --bg-canvas: #fdfdfc;
+  --bg-panel: rgba(255, 255, 255, 0.8);
+  
+  --text-main: #1a1a18;       /* Semi-black slate */
+  --text-dim: #6b6b64;        /* Muted sage/slate */
+  --text-muted: #a3a39f;
+  
+  --accent-primary: #d97706;  /* Sophisticated amber */
+  --accent-slate: #334155;
+  --accent-crimson: #991b1b;
+  
+  --border-main: rgba(0, 0, 0, 0.06);
+  --border-strong: rgba(0, 0, 0, 0.12);
+  
+  --shadow-soft: 0 4px 24px -2px rgba(0, 0, 0, 0.04), 0 2px 8px -1px rgba(0, 0, 0, 0.02);
+  --font-sans: 'Outfit', 'Inter', system-ui, sans-serif;
+}
+
+[data-theme='dark'] {
+  --bg-app: #0f1115;
+  --bg-sidebar: #16181d;
+  --bg-canvas: #0f1115;
+  --bg-panel: rgba(22, 24, 29, 0.8);
+  
+  --text-main: #ececec;
+  --text-dim: #94a3b8;
+  --text-muted: #475569;
+  
+  --accent-primary: #fbbf24;
+  --border-main: rgba(255, 255, 255, 0.06);
+  --border-strong: rgba(255, 255, 255, 0.12);
+}
+
+@theme {
+  --color-app: var(--bg-app);
+  --color-canvas: var(--bg-canvas);
+  --color-panel: var(--bg-panel);
+  --color-main: var(--text-main);
+  --color-dim: var(--text-dim);
+  --color-accent: var(--accent-primary);
+  --color-border-main: var(--border-main);
+}
+
+/* ============================================================
+   Global Reset & Layout
+   ============================================================ */
+
+* {
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  overflow: hidden;
+}
+
+/* Sophisticated Typography */
+h1, h2, h3, h4 {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.glass-card {
+  background: var(--bg-panel);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-main);
+  box-shadow: var(--shadow-soft);
+}
+
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ============================================================
+   Professional Utility Components
+   ============================================================ */
+
+.glass-panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-main);
+}
+
+.glass-pill {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-muted);
+  border-radius: 9999px;
+}
+
+.btn-icon {
+  @apply w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200;
+  border: 1px solid var(--border-muted);
+}
+
+.btn-icon:hover {
+  @apply bg-white/5 text-white;
+  border-color: var(--border-main);
+}
+
+.btn-icon.active {
+  @apply bg-accent/20 text-accent;
+  border-color: var(--accent-primary);
+}
+
+.btn-section-label {
+  @apply text-[9px] font-black uppercase tracking-[0.2em] text-dim mb-1;
+}
+
+/* ============================================================
+   Elite UI Utilities
+   ============================================================ */
+
+.text-reveal-mask {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
+}
+
+.char-reveal {
+  display: inline-block;
+  transform: translateY(110%);
+}
+
+.glass-premium {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.premium-solid-text {
+  color: #ffffff;
+}
+
+.parallax-container {
+  perspective: 1000px;
+}
+
+.parallax-layer {
+  transform-style: preserve-3d;
+}
+
+/* ============================================================
+   React Flow High-Contrast Integration
+   ============================================================ */
+
+.react-flow__background {
+  background-color: var(--bg-canvas) !important;
+}
+
+.react-flow__handle {
+  width: 12px !important;
+  height: 12px !important;
+  background: var(--bg-canvas) !important;
+  border: 2px solid var(--accent-primary) !important;
+}
+
+.react-flow__edge-path {
+  stroke-width: 3;
+}
+
+/* ============================================================
+   Animations & Tooltips
+   ============================================================ */
+
+/* Removed pulse animation */
+
+/* Scrollbar refinement */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-muted);
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-main);
+}
+/* ============================================================
+   Landing Page Components
+   ============================================================ */
+
+.hero-solid {
+  background: transparent;
+}
+
+.bento-card {
+  @apply relative overflow-hidden transition-all duration-700;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.bento-card:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.font-premium {
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: -0.05em;
+}
+
+.btn-primary {
+  @apply bg-white text-black px-8 py-4 rounded-2xl font-black uppercase tracking-widest 
+         hover:bg-accent hover:text-white transition-all duration-300
+         flex items-center justify-center gap-3 active:scale-95;
+}
+
+.btn-secondary {
+  @apply border border-white/10 text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest 
+         hover:bg-white/5 transition-all duration-300
+         flex items-center justify-center gap-3 active:scale-95;
+}
+
+.input-field {
+  @apply w-full h-16 bg-white/5 border border-white/10 rounded-2xl px-8 
+         focus:bg-white/10 focus:border-accent transition-all 
+         font-bold text-sm outline-none placeholder:text-white/20;
+}
