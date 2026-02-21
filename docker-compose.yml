@@ -8,12 +8,23 @@ services:
       args:
         - VITE_SUPABASE_URL=${API_DOMAIN:-http://localhost:8000}
         - VITE_SUPABASE_ANON_KEY=${ANON_KEY}
-    ports:
-      - "3000:80"
+    expose:
+      - "80"
     environment:
       - VITE_SUPABASE_URL=${API_DOMAIN:-http://localhost:8000}
       - VITE_SUPABASE_ANON_KEY=${ANON_KEY}
     depends_on:
+      - kong
+
+  # --- Reverse Proxy ---
+  nginx:
+    image: nginx:stable-alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - logiclab-app
       - kong
 
   # --- Supabase Stack ---
@@ -44,8 +55,8 @@ services:
       KONG_PROXY_LISTEN: 0.0.0.0:8000
     volumes:
       - ./supabase/kong/kong.yml:/var/lib/kong/kong.yml
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
 
   auth:
     image: supabase/gotrue:v2.132.3
