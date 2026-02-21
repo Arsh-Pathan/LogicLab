@@ -1,8 +1,4 @@
-// ============================================================
-// CommunityPage — Browse & publish shared circuits
-// ============================================================
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Globe,
@@ -12,7 +8,10 @@ import {
   ArrowRight,
   Loader2,
   Sparkles,
+  CircuitBoard as CircuitIcon,
+  Code2
 } from 'lucide-react';
+import { gsap } from 'gsap';
 import { useCircuitStore } from '../store/circuitStore';
 import { useProjectStore } from '../store/projectStore';
 import { fetchPublishedCircuits } from '../lib/projectApi';
@@ -37,6 +36,7 @@ export default function CommunityPage() {
   const [circuits, setCircuits] = useState<PublishedCircuit[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const containerRef = useRef(null);
 
   useEffect(() => {
     const load = async () => {
@@ -53,6 +53,21 @@ export default function CommunityPage() {
     load();
   }, []);
 
+  useEffect(() => {
+    if (!loading) {
+      const ctx = gsap.context(() => {
+        gsap.from('.reveal-item', {
+          y: 30,
+          opacity: 0,
+          duration: 0.8,
+          stagger: 0.05,
+          ease: 'power3.out'
+        });
+      }, containerRef);
+      return () => ctx.revert();
+    }
+  }, [loading]);
+
   const handleLoadCircuit = (circuit: PublishedCircuit) => {
     const result = importProject(JSON.stringify(circuit.data));
     if (result) {
@@ -67,7 +82,6 @@ export default function CommunityPage() {
     c.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Example circuits when no community data is available
   const exampleCircuits: PublishedCircuit[] = [
     {
       id: 'ex-1',
@@ -100,137 +114,110 @@ export default function CommunityPage() {
       id: 'ex-4',
       project_id: 'ex-4',
       user_id: 'system',
-      name: 'Multiplexer 4:1',
-      description: 'A 4-to-1 multiplexer selecting one of four data inputs based on a 2-bit selector.',
-      data: { version: '1.0.0', name: 'Multiplexer 4:1', description: '', createdAt: '', updatedAt: '', nodes: [], connections: [], customICs: [] },
-      published_at: '2026-02-10',
-    },
-    {
-      id: 'ex-5',
-      project_id: 'ex-5',
-      user_id: 'system',
-      name: '7-Segment Decoder',
-      description: 'A BCD to 7-segment display decoder, converting 4-bit binary inputs to display patterns.',
-      data: { version: '1.0.0', name: '7-Segment Decoder', description: '', createdAt: '', updatedAt: '', nodes: [], connections: [], customICs: [] },
-      published_at: '2026-02-14',
-    },
-    {
-      id: 'ex-6',
-      project_id: 'ex-6',
-      user_id: 'system',
       name: 'ALU (4-Bit)',
       description: 'A 4-bit Arithmetic Logic Unit supporting addition, subtraction, AND, OR, and XOR operations.',
       data: { version: '1.0.0', name: 'ALU (4-Bit)', description: '', createdAt: '', updatedAt: '', nodes: [], connections: [], customICs: [] },
       published_at: '2026-02-18',
-    },
+    }
   ];
 
   const displayCircuits = filteredCircuits.length > 0 ? filteredCircuits : (searchQuery ? [] : exampleCircuits);
 
   return (
-    <div className="min-h-screen bg-[#02040a] text-white">
-      {/* Top Navigation */}
-      <nav className="border-b border-white/5 bg-[#02040a]/80 backdrop-blur-xl sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 h-16 flex items-center justify-between">
-          <button onClick={() => navigate('/home')} className="flex items-center gap-3 group">
-            <Logo size={32} />
-            <span className="text-sm font-black uppercase tracking-[0.2em] group-hover:text-blue-400 transition-colors">LogicLab</span>
+    <div className="min-h-screen bg-app transition-colors duration-500 pb-32" ref={containerRef}>
+      {/* Precision Navigation */}
+      <nav className="border-b border-border-main bg-app/80 backdrop-blur-2xl sticky top-0 z-50 h-20 flex items-center">
+        <div className="max-w-7xl mx-auto px-6 w-full flex items-center justify-between">
+          <button onClick={() => navigate('/home')} className="flex items-center gap-4 group">
+            <Logo size={36} />
+            <span className="text-[10px] font-black uppercase tracking-[0.4em] group-hover:text-main transition-colors opacity-50">Infrastructure</span>
           </button>
           
-          <div className="flex items-center gap-4">
-            <button onClick={() => navigate('/dashboard')} className="text-sm text-white/40 hover:text-white font-bold transition-colors">
-              Dashboard
+          <div className="flex items-center gap-8">
+            <button onClick={() => navigate('/dashboard')} className="text-[10px] font-black uppercase tracking-widest text-dim hover:text-main transition-colors">
+              Registry
             </button>
-            <button onClick={() => navigate('/sandbox')} className="text-sm text-white/40 hover:text-white font-bold transition-colors">
-              Sandbox
+            <button onClick={() => navigate('/sandbox')} className="px-6 py-2 border border-border-main text-[10px] font-black uppercase tracking-widest hover:bg-main hover:text-app transition-all">
+              Initialize Lab
             </button>
           </div>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-blue-600/5 to-transparent" />
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 pt-16 pb-12 relative">
-          <div className="flex items-center gap-3 mb-4">
-            <Globe size={20} className="text-blue-400" />
-            <span className="text-xs font-black uppercase tracking-[0.4em] text-blue-400">Community Hub</span>
+      {/* High-Prestige Hero */}
+      <div className="pt-32 pb-20 border-b border-border-main relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
+          <div className="reveal-item flex items-center gap-4 mb-8">
+            <Globe size={24} className="text-main" />
+            <span className="text-[10px] font-black uppercase tracking-[0.6em] text-dim opacity-50">Global Laboratory Sync</span>
           </div>
-          <h1 className="text-4xl lg:text-5xl font-black tracking-tight mb-4">
-            Discover Circuits
+          <h1 className="reveal-item text-7xl font-black tracking-tighter uppercase leading-[0.8] mb-8">
+            Circuit <br />Archaeology
           </h1>
-          <p className="text-white/30 text-sm font-medium max-w-lg">
-            Browse circuits shared by the community, learn from others' designs, or publish your own creations.
+          <p className="reveal-item text-2xl text-dim font-medium max-w-2xl leading-snug tracking-tight">
+            Explore the peer-verified library of digital systems. <br />
+            <span className="text-main italic font-bold">Standardized logic for a modular future.</span>
           </p>
+        </div>
+        <div className="absolute right-0 top-0 text-[400px] font-black italic text-main opacity-[0.015] translate-x-1/4 -translate-y-1/4 pointer-events-none select-none">
+          HUB
         </div>
       </div>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 lg:px-8 pb-24">
-        {/* Search */}
-        <div className="flex items-center gap-4 mb-8">
-          <div className="relative flex-1 max-w-md">
-            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" />
+      {/* Search & Grid */}
+      <main className="max-w-7xl mx-auto px-6 py-20">
+        <div className="reveal-item flex items-center gap-6 mb-16 max-w-2xl">
+          <div className="relative flex-1">
+            <Search size={20} className="absolute left-6 top-1/2 -translate-y-1/2 text-dim opacity-40" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search circuits..."
-              className="w-full h-11 bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 text-sm text-white placeholder-white/20 focus:border-blue-500/50 outline-none transition-all font-medium"
+              placeholder="Query the logic lattice..."
+              className="premium-input pl-16 py-8"
             />
           </div>
         </div>
 
-        {/* Loading */}
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-24">
-            <Loader2 size={32} className="text-blue-500 animate-spin mb-4" />
-            <span className="text-sm text-white/30 font-medium">Discovering circuits...</span>
-          </div>
-        ) : displayCircuits.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <CircuitBoard size={48} className="text-white/10 mb-6" />
-            <h3 className="text-xl font-bold mb-2">No circuits found</h3>
-            <p className="text-sm text-white/30">Try a different search term.</p>
+          <div className="flex flex-col items-center justify-center py-40">
+            <Loader2 size={40} className="text-main animate-spin mb-6 opacity-20" />
+            <span className="text-[10px] font-black uppercase tracking-[0.5em] text-dim opacity-50">Syncing Peer Data</span>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1px bg-border-main border border-border-main shadow-premium">
             {displayCircuits.map((circuit) => (
-              <button
+              <div
                 key={circuit.id}
                 onClick={() => handleLoadCircuit(circuit)}
-                className="text-left p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] hover:border-white/10 transition-all group relative overflow-hidden"
+                className="reveal-item text-left p-12 bg-app hover:bg-neutral-50 transition-all group relative cursor-pointer"
               >
-                {/* Top accent line */}
-                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                
-                <div className="flex items-start justify-between mb-4">
-                  <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-400 group-hover:bg-blue-500/20 transition-colors">
-                    <CircuitBoard size={20} />
+                <div className="flex items-start justify-between mb-10">
+                  <div className="w-14 h-14 bg-main text-app flex items-center justify-center rounded-sm group-hover:scale-110 transition-transform shadow-premium">
+                    <CircuitIcon size={24} />
                   </div>
-                  <ArrowRight size={16} className="text-white/10 group-hover:text-blue-400 group-hover:translate-x-1 transition-all mt-2" />
+                  <Sparkles size={16} className="text-dim opacity-20 group-hover:opacity-100 group-hover:text-main transition-all" />
                 </div>
 
-                <h3 className="font-bold text-white group-hover:text-blue-400 transition-colors truncate">
-                  {circuit.name}
-                </h3>
-                <p className="text-xs text-white/20 mt-2 line-clamp-2 leading-relaxed min-h-[2.5em]">
-                  {circuit.description || 'No description'}
-                </p>
-
-                <div className="flex items-center justify-between mt-5 pt-4 border-t border-white/5">
-                  <div className="flex items-center gap-1.5 text-white/15">
-                    <Clock size={10} />
-                    <span className="text-[10px] font-medium">
-                      {new Date(circuit.published_at).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-white/15">
-                    <Sparkles size={10} />
-                    <span className="text-[10px] font-medium">Community</span>
-                  </div>
+                <div className="space-y-4">
+                  <h3 className="text-2xl font-black uppercase tracking-tighter leading-none group-hover:translate-x-2 transition-transform">
+                    {circuit.name}
+                  </h3>
+                  <p className="text-sm text-dim font-medium leading-relaxed line-clamp-2 opacity-60 italic group-hover:opacity-100 transition-opacity">
+                    {circuit.description || 'No technical specification provided.'}
+                  </p>
                 </div>
-              </button>
+
+                <div className="mt-12 pt-8 border-t border-border-main flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-dim opacity-40">
+                    <Clock size={12} />
+                    <span>Published {new Date(circuit.published_at).toLocaleDateString()}</span>
+                  </div>
+                  <button className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest group-hover:gap-6 transition-all">
+                    Sync <ArrowRight size={14} />
+                  </button>
+                </div>
+              </div>
             ))}
           </div>
         )}

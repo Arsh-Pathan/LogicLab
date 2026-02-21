@@ -1,128 +1,229 @@
-import { Book, Cpu, Zap, Info, ArrowRight, Layers, Layout, Clock } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import Logo from '../components/common/Logo';
-
-const GATES = [
-  { name: 'AND Gate', icon: <Zap size={18} />, desc: 'Output is high ONLY if all inputs are high.', logic: 'Y = A · B' },
-  { name: 'OR Gate', icon: <Cpu size={18} />, desc: 'Output is high if AT LEAST ONE input is high.', logic: 'Y = A + B' },
-  { name: 'NOT Gate', icon: <Info size={18} />, desc: 'Inverts the incoming signal.', logic: 'Y = Ā' },
-  { name: 'XOR Gate', icon: <Layers size={18} />, desc: 'Output is high if inputs are DIFFERENT.', logic: 'Y = A ⊕ B' },
-  { name: 'NAND Gate', icon: <Zap size={18} />, desc: 'Inverted AND. High unless all inputs are high.', logic: 'Y = ¬(A · B)' },
-  { name: 'NOR Gate', icon: <Cpu size={18} />, desc: 'Inverted OR. High only if all inputs are low.', logic: 'Y = ¬(A + B)' },
-];
+import { useState, useEffect, useRef } from 'react';
+import {
+  Search,
+  Book,
+  Cpu,
+  Zap,
+  Layers,
+  Code2,
+  ArrowRight,
+  Terminal,
+  Box
+} from 'lucide-react';
+import { gsap } from 'gsap';
 
 const CATEGORIES = [
   {
-    title: 'Introduction',
-    items: ['Getting Started', 'Installation', 'Architecture']
+    title: 'Foundations',
+    id: 'foundations',
+    icon: <Book className="w-4 h-4" />,
+    items: [
+      { id: 'philosophy', title: 'The LogicLab Philosophy', desc: 'Understanding the deterministic engine behind our simulations.', content: 'LogicLab is built on the principle of absolute determinism. Every signal propagation is computed with nanosecond precision, ensuring that asynchronous hazards and race conditions in your circuits behave exactly as they would on silicon.' },
+      { id: 'binary', title: 'Pure Binary Systems', desc: 'The mathematical bedrock of digital computation.', content: 'Beyond 0 and 1, we simulate high-impedance (Z) and undefined (X) states to accurately model tri-state buffers and uninitialized memory components.' },
+      { id: 'signal', title: 'Signal Propagation', desc: 'How voltage levels and state transitions work in LogicLab.', content: 'Our Discrete Event Simulator (DES) handles millions of signal transitions per second, allowing for real-time visualization of complex wave propagation across massive grids.' }
+    ]
   },
   {
-    title: 'Simulation Engine',
-    items: ['Signal Flow', 'Oscillators (Clock)', 'Propagation Delay', 'Gate Determinism']
+    title: 'Simulation Core',
+    id: 'core',
+    icon: <Cpu className="w-4 h-4" />,
+    items: [
+      { id: 'oscillator', title: 'Synchronous Clocking', desc: 'Timing analysis and oscillator stability in complex circuits.', content: 'Clock stability is paramount. We implement jitter-aware oscillators that can be tuned from 0.1Hz to 1MHz for deep timing analysis.' },
+      { id: 'delay', title: 'Propagation Latency', desc: 'Simulating real-world physical constraints in gate switching.', content: 'Every logic gate in our library includes configurable propagation delays. Transitioning from AND to NAND logic introduces measurable latency, enabling the study of critical paths.' },
+      { id: 'bus', title: 'Bus Architecture', desc: 'Handling multi-bit data paths and tri-state logic.', content: 'Design wide data paths using our multi-bit bus components. Built-in parity checking and error detection modules allow for robust architecture design.' }
+    ]
   },
   {
-    title: 'Component Library',
-    items: ['Basic Gates', 'Advanced Components', 'Integrated Circuits', 'Custom Chips']
+    title: 'Advanced Hardware',
+    id: 'advanced',
+    icon: <Layers className="w-4 h-4" />,
+    items: [
+      { id: 'alu', title: 'Arithmetic Logic Units', desc: 'Implementing complex math via cascading full adders.', content: 'Build high-performance ALUs that support standard operations (ADD, SUB, AND, OR) along with custom micro-op instructions.' },
+      { id: 'ram', title: 'Memory Hierarchies', desc: 'From flip-flops to high-density static RAM modules.', content: 'LogicLab provides optimized SRAM primitives. Design multi-level caches and register files with concurrent read/write access.' },
+      { id: 'instruction', title: 'Instruction Set Design', desc: 'Creating custom control units for programmable chips.', content: 'Define your own ISA. Build control units that decode opcodes and drive execution stages with single-cycle precision.' }
+    ]
+  },
+  {
+    title: 'The Future',
+    id: 'future',
+    icon: <Zap className="w-4 h-4" />,
+    items: [
+      { id: 'quantum', title: 'Quantum Logic Gates', desc: 'Theoretical implementation of Qubits and Superposition.', content: 'Explore the foundations of quantum compute. Simulate Hadamard and CNOT gates within a classical logic framework for educational exploration.' },
+      { id: 'neural', title: 'Neuromorphic Hardware', desc: 'Simulating neural nodes using analog-inspired digital logic.', content: 'Build spiking neural networks using standard logic gates. Our engine supports Leaky-Integrate-and-Fire models for digital neuromorphic research.' }
+    ]
   }
 ];
 
 export default function DocsPage() {
-  const navigate = useNavigate();
+  const [activeItem, setActiveItem] = useState(CATEGORIES[0].items[0]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const pageRef = useRef(null);
+  const contentBodyRef = useRef(null);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.from('.docs-header', {
+        y: -50,
+        opacity: 0,
+        duration: 1,
+        ease: 'power4.out'
+      });
+      
+      gsap.from('.sidebar-item', {
+        x: -30,
+        opacity: 0,
+        duration: 0.8,
+        stagger: 0.05,
+        ease: 'power2.out',
+        delay: 0.2
+      });
+
+      gsap.from('.content-section', {
+        y: 40,
+        opacity: 0,
+        duration: 1.2,
+        ease: 'expo.out',
+        delay: 0.4
+      });
+    }, pageRef);
+
+    return () => ctx.revert();
+  }, []);
+
+  useEffect(() => {
+    if (contentBodyRef.current) {
+      gsap.fromTo(contentBodyRef.current, 
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }
+      );
+    }
+  }, [activeItem]);
+
+  const filteredCategories = CATEGORIES.map(cat => ({
+    ...cat,
+    items: cat.items.filter(item => 
+      item.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      item.desc.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  })).filter(cat => cat.items.length > 0);
 
   return (
-    <div className="min-h-screen bg-app text-main pb-32">
-      {/* Side Navigation */}
-      <div className="fixed top-0 left-0 bottom-0 w-72 bg-sidebar border-r border-border-main p-8 overflow-y-auto hidden lg:block">
-        <div className="flex items-center gap-3 mb-12 cursor-pointer" onClick={() => navigate('/home')}>
-           <Logo size={24} />
-           <span className="text-lg font-bold">Documentation</span>
-        </div>
-
-        <nav className="space-y-12">
-          {CATEGORIES.map((cat, i) => (
-            <div key={i}>
-              <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-dim mb-6">{cat.title}</h4>
-              <div className="space-y-4">
-                 {cat.items.map((item, j) => (
-                    <button key={j} className={`flex items-center gap-3 text-sm font-semibold transition-colors ${i === 2 && j === 0 ? 'text-main font-bold' : 'text-dim hover:text-main'}`}>
-                        {item}
-                    </button>
-                 ))}
+    <div className="min-h-screen bg-app transition-colors duration-500 pb-24" ref={pageRef}>
+      {/* Search Header */}
+      <div className="docs-header pt-32 pb-16 border-b border-border-main">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex flex-col gap-8">
+            <div className="flex items-center gap-6">
+              <div className="w-14 h-14 bg-main flex items-center justify-center rounded-sm shadow-premium">
+                <Code2 className="w-8 h-8 text-app" />
               </div>
+              <h1 className="text-6xl font-black uppercase tracking-tighter leading-none">The Academy</h1>
             </div>
-          ))}
-        </nav>
+            
+            <div className="relative max-w-2xl mt-4">
+              <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-dim opacity-40" />
+              <input 
+                type="text"
+                placeholder="search the foundations of logic..."
+                className="premium-input pl-16 py-8"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Main Content */}
-      <main className="lg:pl-72 max-w-7xl mx-auto px-8 py-16 lg:py-24">
-        <div className="max-w-3xl">
-          <div className="flex items-center gap-2 text-accent font-bold text-[10px] uppercase tracking-widest mb-6">
-            <Book size={14} /> Library / Primitives
-          </div>
-          
-          <h1 className="text-5xl md:text-6xl font-black tracking-tight mb-8">Logic Gate Encyclopedia</h1>
-          <p className="text-xl text-dim font-medium leading-relaxed mb-16">
-            Explore the fundamental building blocks of digital computation. Every gate in LogicLab is built on high-precision deterministic logic.
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-24">
-            {GATES.map((gate, i) => (
-              <div key={i} className="p-8 rounded-[2rem] bg-sidebar border border-border-main hover:border-accent transition-all group">
-                <div className="w-10 h-10 rounded-2xl bg-app border border-border-main flex items-center justify-center mb-6 group-hover:bg-accent group-hover:text-app transition-all">
-                  {gate.icon}
+      <div className="max-w-7xl mx-auto px-6 py-24">
+        <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-24">
+          {/* Sidebar */}
+          <aside className="flex flex-col gap-12 sticky top-32 h-fit">
+            {filteredCategories.map((cat) => (
+              <div key={cat.id} className="sidebar-item flex flex-col gap-5">
+                <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-dim opacity-50">
+                  {cat.icon}
+                  {cat.title}
                 </div>
-                <h3 className="text-xl font-bold mb-3">{gate.name}</h3>
-                <p className="text-sm text-dim font-medium leading-relaxed mb-6">{gate.desc}</p>
-                <div className="p-4 bg-app rounded-2xl border border-border-main text-[10px] font-mono font-bold text-accent text-center tracking-[0.2em]">
-                  {gate.logic}
+                <div className="flex flex-col gap-1">
+                  {cat.items.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => setActiveItem(item)}
+                      className={`
+                        text-left py-3 px-6 rounded-sm text-sm font-bold transition-all
+                        ${activeItem.id === item.id 
+                          ? 'bg-main text-app shadow-premium translate-x-2' 
+                          : 'text-dim hover:text-main hover:bg-neutral-100'}
+                      `}
+                    >
+                      {item.title}
+                    </button>
+                  ))}
                 </div>
               </div>
             ))}
-          </div>
+          </aside>
 
-          <div className="pt-20 border-t border-border-main">
-            <h2 className="text-3xl font-bold mb-4">Advanced Components</h2>
-            <p className="text-dim mb-10 font-medium">Beyond simple gates, LogicLab provides high-level primitives for complex architectural design.</p>
-            
-            <div className="grid grid-cols-1 gap-4">
-              {[
-                { name: 'Half-Adder', icon: <Layout />, desc: 'Computes sum and carry-out for two binary digits. The basis of all arithmetic logic units.' },
-                { name: 'Clock Source', icon: <Clock />, desc: 'Periodic square-wave generator. Essential for synchronous systems and flip-flops.' },
-                { name: 'Integrated Circuit (IC)', icon: <Layers />, desc: 'A revolutionary feature: recursively pack any sub-circuit into a single re-usable node.' },
-                { name: 'Multiplexer (MUX)', icon: <Cpu />, desc: 'Selects one of many input signals and forwards it to a single output line.' },
-                { name: 'Flip-Flop (D-Type)', icon: <Zap />, desc: 'A fundamental storage element that captures the value of the D-input at a definite portion of the clock cycle.' },
-              ].map((c, i) => (
-                <div key={i} className="flex items-center justify-between p-8 rounded-[2rem] border border-border-main bg-sidebar hover:bg-app transition-all cursor-pointer group hover:shadow-xl hover:shadow-black/5">
-                  <div className="flex items-center gap-6">
-                    <div className="w-12 h-12 rounded-2xl bg-app flex items-center justify-center text-dim group-hover:text-accent transition-colors border border-border-main">
-                        {c.icon}
-                    </div>
-                    <div>
-                      <h4 className="text-lg font-bold text-main">{c.name}</h4>
-                      <p className="text-xs text-dim font-medium max-w-sm">{c.desc}</p>
-                    </div>
-                  </div>
-                  <ArrowRight size={20} className="text-border-strong group-hover:text-accent translate-x-0 group-hover:translate-x-1 transition-all" />
+          {/* Main Content */}
+          <main className="flex flex-col gap-20 content-section" ref={contentBodyRef}>
+            <section className="flex flex-col gap-12">
+              <div className="flex flex-col gap-8">
+                <div className="px-5 py-2 rounded-full border border-border-main self-start text-[10px] font-black uppercase tracking-[0.2em] text-accent opacity-60">
+                  Section: {activeItem.id}
                 </div>
-              ))}
-            </div>
-          </div>
+                <h2 className="text-7xl font-black tracking-tighter max-w-4xl leading-[0.85] uppercase">
+                  {activeItem.title}
+                </h2>
+                <div className="w-32 h-2 bg-main"></div>
+                <p className="text-3xl text-dim max-w-3xl leading-snug font-medium tracking-tight">
+                  {activeItem.desc}
+                </p>
+              </div>
 
-          <div className="mt-32 p-12 rounded-[3rem] bg-accent/5 border border-accent/10 relative overflow-hidden">
-                <div className="relative z-10">
-                    <h2 className="text-3xl font-bold mb-4">Mathematical Foundations</h2>
-                    <p className="text-dim font-medium leading-relaxed mb-8 max-w-lg">
-                        Our engine uses a discrete event-based simulation model. This ensures that every signal propagation is deterministic and free from race conditions.
-                    </p>
-                    <button className="flex items-center gap-2 text-accent font-bold text-sm hover:gap-4 transition-all">
-                        Read the technical whitepaper <ArrowRight size={16} />
-                    </button>
+              <div className="glass-card p-16 prose prose-xl max-w-none prose-invert border-none">
+                 <p className="text-xl leading-relaxed font-medium text-main">
+                   {activeItem.content}
+                 </p>
+                 
+                 <div className="mt-20 grid grid-cols-1 md:grid-cols-2 gap-12">
+                   <div className="flex flex-col gap-6 p-10 border border-border-main rounded-sm group hover:border-main transition-all cursor-pointer">
+                      <Terminal className="w-8 h-8 text-dim group-hover:text-main transition-colors" />
+                      <h4 className="text-2xl font-black uppercase tracking-tighter">Implementation Guide</h4>
+                      <p className="text-sm text-dim leading-relaxed">
+                        Detailed specifications for system designers and verification engineers.
+                      </p>
+                      <ArrowRight className="w-5 h-5 group-hover:translate-x-3 transition-transform" />
+                   </div>
+                   <div className="flex flex-col gap-6 p-10 border border-border-main rounded-sm group hover:border-main transition-all cursor-pointer">
+                      <Box className="w-8 h-8 text-dim group-hover:text-main transition-colors" />
+                      <h4 className="text-2xl font-black uppercase tracking-tighter">Primitive Library</h4>
+                      <p className="text-sm text-dim leading-relaxed">
+                        Master the standard logic gates and their mathematical truth tables.
+                      </p>
+                      <ArrowRight className="w-5 h-5 group-hover:translate-x-3 transition-transform" />
+                   </div>
+                 </div>
+              </div>
+
+              <div className="p-16 bg-main text-app rounded-sm relative overflow-hidden shadow-2xl flex flex-col gap-12 mt-12">
+                <Layers className="absolute -right-24 -bottom-24 w-96 h-96 opacity-5 rotate-12" />
+                <div className="flex flex-col gap-6 relative z-10 max-w-2xl">
+                  <h3 className="text-5xl font-black leading-none tracking-tighter uppercase italic">
+                    Unlock <br />Advanced Lab Features
+                  </h3>
+                  <p className="opacity-60 text-lg leading-relaxed font-medium">
+                    Integrated circuitry, cloud collaborative verification, and 
+                    high-density memory simulation. Sign in to access your private lab.
+                  </p>
+                  <button className="self-start px-12 py-5 bg-app text-main font-black uppercase tracking-[0.25em] text-xs hover:invert transition-all">
+                    Register Scholar Access
+                  </button>
                 </div>
-                <div className="absolute top-0 right-0 w-64 h-64 bg-accent opacity-[0.03] blur-3xl -translate-y-1/2 translate-x-1/2" />
-          </div>
+              </div>
+            </section>
+          </main>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

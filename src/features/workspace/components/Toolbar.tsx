@@ -8,7 +8,8 @@ import {
   Clock,
   Sun,
   Moon,
-  ToggleLeft
+  ToggleLeft,
+  ChevronDown
 } from 'lucide-react';
 import { useCircuitStore } from '../../../store/circuitStore';
 import { useUIStore } from '../../../store/uiStore';
@@ -22,7 +23,7 @@ import Logo from '../../../components/common/Logo';
 // ============================================================
 
 function SectionLabel({ children }: { children: string }) {
-  return <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted mb-2 block">{children}</span>;
+  return <span className="text-[9px] font-black uppercase tracking-[0.4em] text-muted mb-3 block opacity-50">{children}</span>;
 }
 
 function GateSymbol({ type }: { type: string }) {
@@ -37,13 +38,12 @@ function GateSymbol({ type }: { type: string }) {
   };
 
   return (
-    <div className="flex flex-col items-center gap-1">
-       <svg width="22" height="14" viewBox="0 0 24 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="overflow-visible pointer-events-none">
+    <div className="flex flex-col items-center gap-2">
+       <svg width="24" height="14" viewBox="0 0 24 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="overflow-visible pointer-events-none group-hover:scale-110 transition-transform">
           {isX && <path d="M -1,1.5 Q 3,7 -1,12.5" />}
           <path d={getPath()} />
-          {isInverted && <circle cx={type === 'NOT' || type === 'BUF' ? 19 : type.includes('AND') ? 16 : 20} cy="7" r="2" fill="currentColor" fillOpacity="0.3" />}
+          {isInverted && <circle cx={type === 'NOT' || type === 'BUF' ? 19 : type.includes('AND') ? 16 : 20} cy="7" r="1.8" fill="currentColor" />}
        </svg>
-       <span className="text-[7px] font-black tracking-widest uppercase text-main/40 pointer-events-none">{type === 'BUFFER' ? 'BUF' : type}</span>
     </div>
   );
 }
@@ -67,18 +67,18 @@ function ToolButton({
   variant?: 'default' | 'danger' | 'accent' | 'terminal' | 'gate';
   label?: string;
 }) {
-  const base = "flex items-center justify-center transition-all duration-200 border relative group";
+  const base = "flex items-center justify-center transition-all duration-300 border rounded-sm relative group";
   
   const variants = {
     default: active 
-      ? 'w-9 h-9 rounded-xl bg-accent-blue/20 text-accent-blue border-accent-blue/30' 
-      : 'w-9 h-9 rounded-xl text-dim hover:text-main hover:bg-card border-border-muted',
-    danger: 'w-9 h-9 rounded-xl text-dim hover:text-accent-red hover:bg-accent-red/10 border-border-muted hover:border-accent-red/20',
+      ? 'w-10 h-10 bg-main text-app border-main' 
+      : 'w-10 h-10 text-dim hover:text-main hover:bg-neutral-50 border-border-main',
+    danger: 'w-10 h-10 text-dim hover:text-red-500 hover:bg-red-50 border-border-main hover:border-red-200',
     accent: active
-      ? 'w-9 h-9 rounded-xl bg-accent-blue text-white border-accent-blue'
-      : 'w-9 h-9 rounded-xl bg-card text-dim border-border-muted hover:border-border-main hover:text-main',
-    terminal: 'w-10 h-10 rounded-full bg-card border-border-muted text-dim hover:text-accent-blue hover:border-accent-blue/40',
-    gate: 'h-11 w-11 rounded-xl bg-card border-border-muted text-dim hover:text-main hover:bg-panel hover:border-border-main active:bg-accent-blue/10'
+      ? 'w-11 h-11 bg-main text-app border-main shadow-premium'
+      : 'w-11 h-11 bg-app text-dim border-border-main hover:border-main hover:text-main',
+    terminal: 'w-11 h-11 bg-app border-border-main text-dim hover:text-main hover:bg-neutral-50 shadow-sm',
+    gate: 'h-11 w-11 bg-app border-border-main text-dim hover:text-main hover:bg-neutral-50 active:bg-neutral-100 shadow-sm'
   };
 
   return (
@@ -91,6 +91,9 @@ function ToolButton({
       className={`${base} ${variants[variant]} ${disabled ? 'opacity-20 cursor-not-allowed' : 'cursor-pointer active:scale-95'} ${draggable ? 'cursor-grab active:cursor-grabbing' : ''}`}
     >
       {icon}
+      <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 bg-main text-app text-[8px] font-black px-2 py-1 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-[200]">
+        {label?.toUpperCase()}
+      </div>
     </button>
   );
 }
@@ -133,107 +136,111 @@ export default function Toolbar() {
   const isLive = simulationMode === 'live';
 
   return (
-    <header className="h-24 bg-app border-b border-muted flex items-center px-8 z-[100] relative shrink-0 w-full transition-theme">
+    <header className="h-24 bg-app border-b border-border-main flex items-center px-10 z-[100] relative shrink-0 w-full transition-all">
       
-      {/* 1. Brand */}
-      <div className="flex items-center gap-4 pr-8 mr-6 border-r border-border-muted select-none">
-        <Logo size={40} />
+      {/* 1. Brand Infrastructure */}
+      <div className="flex items-center gap-6 pr-10 mr-10 border-r border-border-main">
+        <Logo size={42} className="hover:rotate-12 transition-transform duration-700" />
         <div className="flex flex-col">
-          <h1 className="text-[17px] font-black uppercase tracking-[0.2em] text-main leading-none">LogicLab</h1>
-          <p className="text-[8px] font-black text-accent-blue tracking-[0.4em] uppercase opacity-80 mt-2">Ultra V2</p>
+          <h1 className="text-[20px] font-black uppercase tracking-tighter text-main leading-none">LogicLab</h1>
+          <p className="text-[9px] font-black text-dim tracking-[0.5em] uppercase opacity-30 mt-2">Institutional V7</p>
         </div>
       </div>
 
-      {/* 2. Terminals Section */}
-      <div className="toolbar-section">
-        <SectionLabel>Terminals</SectionLabel>
-        <div className="flex items-center gap-2">
-          <ToolButton 
-            label="Switch Input" 
-            variant="terminal" 
-            icon={<ToggleLeft size={20} />} 
-            onClick={() => addNode('INPUT', { x: 0, y: 0 })}
-            draggable
-            onDragStart={(e) => handleDragStart(e, 'INPUT')}
-          />
-          <ToolButton 
-            label="Clock Source" 
-            variant="terminal" 
-            icon={<Clock size={18} />} 
-            onClick={() => addNode('CLOCK', { x: 0, y: 0 })}
-            draggable
-            onDragStart={(e) => handleDragStart(e, 'CLOCK')}
-          />
-          <ToolButton 
-            label="7-Segment" 
-            variant="terminal" 
-            icon={<div className="text-[10px] font-black leading-none pointer-events-none">7</div>} 
-            onClick={() => addNode('SEVEN_SEGMENT', { x: 0, y: 0 })}
-            draggable
-            onDragStart={(e) => handleDragStart(e, 'SEVEN_SEGMENT')}
-          />
-          <ToolButton 
-            label="LED Output" 
-            variant="terminal" 
-            icon={<Circle size={18} className="fill-accent-blue/20" />} 
-            onClick={() => addNode('LED', { x: 0, y: 0 })}
-            draggable
-            onDragStart={(e) => handleDragStart(e, 'LED')}
-          />
-        </div>
-      </div>
-
-      <div className="w-8" />
-
-      {/* 3. Logic Palace (Gates) */}
-      <div className="toolbar-section">
-        <SectionLabel>Logic Synthesis</SectionLabel>
-        <div className="flex items-center gap-1">
-          {['AND', 'OR', 'NOT', 'BUFFER', 'NAND', 'NOR', 'XOR', 'XNOR'].map((g) => (
+      {/* 2. Laboratory Infrastructure */}
+      <div className="flex items-center gap-12">
+        <div className="flex flex-col">
+          <SectionLabel>Infrastructure</SectionLabel>
+          <div className="flex items-center gap-2">
             <ToolButton 
-              key={g} 
-              variant="gate" 
-              label={`${g} Gate`}
-              icon={<GateSymbol type={g} />} 
-              onClick={() => addNode(g as ComponentType, { x: 0, y: 0 })} 
+              label="Toggle Input" 
+              variant="terminal" 
+              icon={<ToggleLeft size={20} />} 
+              onClick={() => addNode('INPUT', { x: 0, y: 0 })}
               draggable
-              onDragStart={(e) => handleDragStart(e, g as ComponentType)}
+              onDragStart={(e) => handleDragStart(e, 'INPUT')}
             />
-          ))}
+            <ToolButton 
+              label="Clock Grid" 
+              variant="terminal" 
+              icon={<Clock size={20} />} 
+              onClick={() => addNode('CLOCK', { x: 0, y: 0 })}
+              draggable
+              onDragStart={(e) => handleDragStart(e, 'CLOCK')}
+            />
+            <ToolButton 
+              label="Decade Counter" 
+              variant="terminal" 
+              icon={<div className="text-[10px] font-black leading-none italic">7</div>} 
+              onClick={() => addNode('SEVEN_SEGMENT', { x: 0, y: 0 })}
+              draggable
+              onDragStart={(e) => handleDragStart(e, 'SEVEN_SEGMENT')}
+            />
+            <ToolButton 
+              label="Visual Node" 
+              variant="terminal" 
+              icon={<Circle size={20} />} 
+              onClick={() => addNode('LED', { x: 0, y: 0 })}
+              draggable
+              onDragStart={(e) => handleDragStart(e, 'LED')}
+            />
+          </div>
+        </div>
+
+        {/* 3. Logic Synthesis */}
+        <div className="flex flex-col">
+          <SectionLabel>Logic Synthesis</SectionLabel>
+          <div className="flex items-center gap-1.5">
+            {['AND', 'OR', 'NOT', 'BUFFER', 'NAND', 'NOR', 'XOR', 'XNOR'].map((g) => (
+              <ToolButton 
+                key={g} 
+                variant="gate" 
+                label={`${g}`}
+                icon={<GateSymbol type={g} />} 
+                onClick={() => addNode(g as ComponentType, { x: 0, y: 0 })} 
+                draggable
+                onDragStart={(e) => handleDragStart(e, g as ComponentType)}
+              />
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Middle Spacer with Project Info */}
-      <div className="flex-1 flex flex-col items-center justify-center mx-4">
-         <span className="text-[8px] font-black text-muted uppercase tracking-[0.6em] mb-1.5 ">Active Project</span>
-         <span className="text-[12px] font-black text-main uppercase tracking-[0.3em] truncate max-w-[200px]">{projectName || 'Untitled Project'}</span>
+      {/* Persistence State */}
+      <div className="flex-1 flex flex-col items-center justify-center mx-12">
+         <span className="text-[8px] font-black text-dim uppercase tracking-[0.6em] mb-2 opacity-30">Active Research Frame</span>
+         <div className="flex items-center gap-3 group cursor-pointer">
+           <span className="text-[14px] font-black text-main uppercase tracking-[0.2em] truncate max-w-[240px] leading-none group-hover:scale-105 transition-transform">{projectName || 'UNTITLED_PROTOCOL'}</span>
+           <ChevronDown size={14} className="text-dim opacity-20 group-hover:opacity-100 transition-all" />
+         </div>
       </div>
 
-      {/* 4. Engine State */}
-      <div className="flex items-center gap-5 px-8 border-l border-border-muted h-full py-4">
-         <div className="flex flex-col items-end gap-1.5">
-            <span className="text-[9px] font-black text-muted uppercase tracking-widest">Engine State</span>
-            <div className="flex items-center gap-2">
-               <span className={`text-[8px] font-black uppercase tracking-widest ${isLive ? 'text-accent-emerald' : 'text-dim'}`}>
-                  {isLive ? 'Live' : 'Frozen'}
+      {/* 4. Core Propulsion State */}
+      <div className="flex items-center gap-8 px-10 border-l border-border-main h-full">
+         <div className="flex flex-col items-end gap-2">
+            <span className="text-[9px] font-black text-dim uppercase tracking-widest opacity-40">Core Propulsion</span>
+            <div className="flex items-center gap-3">
+               <span className={`text-[9px] font-black uppercase tracking-widest ${isLive ? 'text-main' : 'text-dim opacity-30'}`}>
+                  {isLive ? 'ACTIVE' : 'STASIS'}
                </span>
-               <div className={`w-2.5 h-2.5 rounded-full ${isLive ? 'bg-accent-emerald' : 'bg-muted/40'}`} />
+               <div className={`w-2.5 h-2.5 rounded-full ${isLive ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)] animate-pulse' : 'bg-neutral-200'}`} />
             </div>
          </div>
          <ToolButton 
            variant="accent"
            active={isLive}
-           icon={<Zap size={22} className={isLive ? "fill-current" : ""} />} 
+           label={isLive ? "Stasis Mode" : "Ignite Engine"}
+           icon={<Zap size={24} className={isLive ? "fill-current" : ""} />} 
            onClick={() => setSimulationMode(isLive ? 'frozen' : 'live')}
          />
       </div>
 
-      {/* 5. Global Actions */}
-      <div className="flex items-center gap-2 ml-4">
-        <ToolButton label="Toggle Theme" icon={theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />} onClick={toggleTheme} />
-        <ToolButton label="Export Project" icon={<Download size={18} />} onClick={handleExport} />
-        <ToolButton label="Settings" icon={<Settings size={18} />} />
-        <ToolButton label="Clear Workspace" variant="danger" icon={<Trash2 size={18} />} onClick={() => clearCircuit()} />
+      {/* 5. Terminal Controls */}
+      <div className="flex items-center gap-3 ml-8">
+        <ToolButton label="Spectral Shift" icon={theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />} onClick={toggleTheme} />
+        <ToolButton label="Persist State" icon={<Download size={18} />} onClick={handleExport} />
+        <ToolButton label="Infrastructure Settings" icon={<Settings size={18} />} />
+        <ToolButton label="Total Reset" variant="danger" icon={<Trash2 size={18} />} onClick={() => clearCircuit()} />
       </div>
     </header>
   );

@@ -33,103 +33,104 @@ export default function WorkspacePage() {
     }
   }, [setShowTutorial]);
 
-  // Engine is initialized at store creation time
-
   return (
     <ReactFlowProvider>
-      <div className="flex flex-col h-screen bg-app overflow-hidden transition-theme">
-        {/* Top Toolbar */}
+      <div className="flex flex-col h-screen bg-app overflow-hidden selection:bg-main selection:text-app">
+        {/* Unified System Toolbar */}
         <Toolbar />
 
-        {/* Secondary Action Bar */}
-        <div className="h-10 bg-[#060810] border-b border-white/5 flex items-center px-4 gap-2 shrink-0 z-50">
+        {/* Action Infrastructure Bar */}
+        <div className="h-12 bg-app border-b border-border-main flex items-center px-6 gap-3 shrink-0 z-50">
           <button
             onClick={() => navigate('/home')}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-white/30 hover:text-white hover:bg-white/5 transition-all text-[10px] font-bold uppercase tracking-widest"
+            className="flex items-center gap-2 px-4 py-1.5 rounded-sm text-dim hover:text-main hover:bg-neutral-100 transition-all text-[10px] font-black uppercase tracking-[0.2em]"
           >
             <Home size={12} /> Home
           </button>
-          <div className="w-px h-4 bg-white/5" />
+          <div className="w-[1px] h-4 bg-border-main" />
           <button
             onClick={() => navigate('/dashboard')}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-white/30 hover:text-white hover:bg-white/5 transition-all text-[10px] font-bold uppercase tracking-widest"
+            className="flex items-center gap-2 px-4 py-1.5 rounded-sm text-dim hover:text-main hover:bg-neutral-100 transition-all text-[10px] font-black uppercase tracking-[0.2em]"
           >
             <FolderOpen size={12} /> Projects
           </button>
           <button
             onClick={() => navigate('/community')}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-white/30 hover:text-white hover:bg-white/5 transition-all text-[10px] font-bold uppercase tracking-widest"
+            className="flex items-center gap-2 px-4 py-1.5 rounded-sm text-dim hover:text-main hover:bg-neutral-100 transition-all text-[10px] font-black uppercase tracking-[0.2em]"
           >
             <Globe size={12} /> Community
           </button>
-          <div className="w-px h-4 bg-white/5" />
+          <div className="w-[1px] h-4 bg-border-main" />
           <button
             onClick={() => setShowProjectManager(true)}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-white/30 hover:text-blue-400 hover:bg-blue-400/5 transition-all text-[10px] font-bold uppercase tracking-widest"
+            className="flex items-center gap-2 px-4 py-1.5 rounded-sm text-dim hover:text-main hover:bg-neutral-100 transition-all text-[10px] font-black uppercase tracking-[0.2em]"
           >
-            <Save size={12} /> Save / Load
+            <Save size={12} /> Save Hub
           </button>
           <button
             onClick={() => setShowICBuilder(true)}
             disabled={selectedNodeIds.length === 0}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-white/30 hover:text-emerald-400 hover:bg-emerald-400/5 transition-all text-[10px] font-bold uppercase tracking-widest disabled:opacity-20"
+            className="flex items-center gap-2 px-4 py-1.5 rounded-sm text-dim hover:text-main hover:bg-neutral-100 transition-all text-[10px] font-black uppercase tracking-[0.2em] disabled:opacity-20"
           >
-            <Package size={12} /> Build IC
+            <Package size={12} /> Package IC
           </button>
 
           <div className="flex-1" />
 
-          {/* Auth status */}
+          {/* Institutional Status */}
           {isAuthenticated && user ? (
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white/[0.03]">
-                <div className="w-4 h-4 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                  <User size={8} className="text-white" />
-                </div>
-                <span className="text-[10px] font-bold text-white/30 max-w-[80px] truncate">{user.email}</span>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3 px-4 py-1.5 border border-border-main rounded-sm bg-neutral-50 shadow-sm">
+                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-main truncate max-w-[120px]">{user.email}</span>
               </div>
-              <button onClick={signOut} className="p-1 rounded text-white/15 hover:text-white/40 transition-colors">
-                <LogOut size={12} />
+              <button 
+                onClick={signOut} 
+                className="p-2 rounded-sm text-dim hover:text-main hover:bg-red-50 transition-all"
+                title="Institutional Sign Out"
+              >
+                <LogOut size={14} />
               </button>
             </div>
           ) : (
             <button
               onClick={() => setShowAuthModal(true)}
-              className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-white/30 hover:text-white hover:bg-white/5 transition-all text-[10px] font-bold uppercase tracking-widest"
+              className="flex items-center gap-2 px-6 py-2 bg-main text-app rounded-sm hover:invert transition-all text-[10px] font-black uppercase tracking-[0.2em]"
             >
-              <LogIn size={12} /> Sign In
+              <LogIn size={12} /> Laboratory Access
             </button>
           )}
         </div>
 
-        {/* Main Workspace */}
+        {/* Main Research Workspace */}
         <div className="flex-1 flex overflow-hidden relative">
-          {/* Canvas */}
+          {/* Simulation Canvas */}
           <Canvas />
 
-          {/* Right Properties Panel */}
+          {/* System Properties Panel */}
           {showPropertiesPanel && (
-            <aside className="w-80 bg-panel border-l border-muted shrink-0 overflow-y-auto transition-theme">
+            <aside className="w-80 bg-panel border-l border-border-main shrink-0 overflow-y-auto shadow-premium z-10">
               <PropertiesPanel />
             </aside>
           )}
         </div>
 
-        {/* Status Bar */}
+        {/* Precision Status Bar */}
         <StatusBar />
 
         {/* Context Menu Overlay */}
         <ContextMenu />
 
-        {/* IC Builder Modal */}
+        {/* IC Assembly Modal */}
         <ICBuilderModal />
 
-        {/* Project Manager Modal */}
+        {/* Project Registry Modal */}
         <ProjectManagerModal />
 
-        {/* Tutorial Overlay */}
+        {/* System Onboarding */}
         <TutorialOverlay />
       </div>
     </ReactFlowProvider>
   );
 }
+

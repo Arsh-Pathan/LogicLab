@@ -1,32 +1,32 @@
 import { useState } from 'react';
-import { X, ArrowRight, MousePointer2, Box, Cpu, Save, Lightbulb } from 'lucide-react';
+import { X, ArrowRight, Box, Cpu, Save, Terminal, Activity } from 'lucide-react';
 import { useUIStore } from '../../store/uiStore';
 
 const STEPS = [
   {
-    title: "Welcome to LogicLab",
-    desc: "I'm so glad you're here! LogicLab is a powerful playground where you can design digital circuits, build custom chips, and learn how computers actually think under the hood.",
-    icon: <Cpu className="text-accent" size={32} />,
+    title: "Inaugural Handshake",
+    desc: "Welcome to the LogicLab Research Environment. You are entering a precision-engineered ecosystem for digital verification and systemic design.",
+    icon: <Terminal className="text-main" size={32} />,
   },
   {
-    title: "The Canvas",
-    desc: "This is where the magic happens. You can click and drag logic gates from the library on the left. Connect the small circles (pins) to create signal paths.",
-    icon: <MousePointer2 className="text-blue-500" size={32} />,
+    title: "The Lattice Grid",
+    desc: "The central workspace allows for deterministic signal propagation. Drag components from the infrastructure library and anchor them to the grid to begin verification.",
+    icon: <Activity className="text-main" size={32} />,
   },
   {
-    title: "Integrated Circuits (ICs)",
-    desc: "Built something cool? Select your gates and click 'Build IC' to package them into a single, custom block. It's like creating your own LEGO pieces!",
-    icon: <Box className="text-emerald-500" size={32} />,
+    title: "System Encapsulation",
+    desc: "LogicLab supports infinite recursion. Select verified sub-systems and click 'Package IC' to collapse complex logic into single, high-density nodes.",
+    icon: <Box className="text-main" size={32} />,
   },
   {
-    title: "Saving Your Work",
-    desc: "Don't lose your hard work. Sign in to save your designs to my cloud. You can access your logic labs from any device, anywhere.",
-    icon: <Save className="text-amber-500" size={32} />,
+    title: "Persistent Registry",
+    desc: "Anchor your research to the global lattice. Sign in to synchronize your persistent states across all institutional nodes.",
+    icon: <Save className="text-main" size={32} />,
   },
   {
-    title: "You're all set!",
-    desc: "Explore the community tab to see what others have built, or dive into the 'Learn' track to master some serious computer science concepts.",
-    icon: <Lightbulb className="text-yellow-400" size={32} />,
+    title: "System Authorization",
+    desc: "You are now cleared for experimentation. Access the Academy for advanced curriculum or browse the Registry for peer-verified architectures.",
+    icon: <Cpu className="text-main" size={32} />,
   }
 ];
 
@@ -54,55 +54,63 @@ export default function TutorialOverlay() {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-app/80 backdrop-blur-xl transition-all duration-500 animate-in fade-in">
-      <div className="bg-sidebar border border-border-strong rounded-[2.5rem] shadow-2xl max-w-lg w-full overflow-hidden flex flex-col">
-        {/* Header */}
-        <div className="p-8 pb-0 flex justify-end">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-6 bg-app/90 backdrop-blur-3xl transition-all duration-700 animate-in fade-in">
+      <div className="bg-app border border-border-main rounded-sm shadow-float max-w-xl w-full overflow-hidden flex flex-col">
+        {/* Institutional Header */}
+        <div className="p-8 pb-0 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+             <div className="w-2 h-2 rounded-full bg-main animate-pulse" />
+             <span className="text-[10px] font-black uppercase tracking-[0.4em] opacity-30">Onboarding Protocol</span>
+          </div>
           <button 
             onClick={handleClose}
-            className="p-2 rounded-xl hover:bg-main/5 text-dim hover:text-main transition-all"
+            className="p-2 rounded-sm hover:bg-neutral-100 text-dim hover:text-main transition-all"
           >
             <X size={20} />
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-8 pt-4 text-center">
-            <div className="w-16 h-16 bg-app rounded-2xl flex items-center justify-center mx-auto mb-8 border border-border-main shadow-sm">
+        <div className="p-12 pt-8 text-center flex flex-col gap-8">
+            <div className="w-20 h-20 bg-neutral-50 rounded-sm flex items-center justify-center mx-auto border border-border-main shadow-sm animate-bounce-subtle">
                 {step.icon}
             </div>
             
-            <h2 className="text-3xl font-bold tracking-tight mb-4">{step.title}</h2>
-            <p className="text-dim font-medium leading-relaxed mb-10">
+            <div className="space-y-4">
+               <h2 className="text-4xl font-black uppercase tracking-tighter leading-none">{step.title}</h2>
+               <div className="w-12 h-1 bg-main mx-auto" />
+            </div>
+
+            <p className="text-lg text-dim font-medium leading-relaxed italic tracking-tight opacity-70">
                 {step.desc}
             </p>
 
-            {/* Pagination dots */}
-            <div className="flex justify-center gap-1.5 mb-10">
+            {/* Precision Pagination */}
+            <div className="flex justify-center gap-2">
                 {STEPS.map((_, i) => (
                     <div 
                         key={i} 
-                        className={`h-1.5 rounded-full transition-all duration-300 ${i === currentStep ? 'w-8 bg-accent' : 'w-1.5 bg-border-strong'}`} 
+                        className={`h-1 transition-all duration-500 ease-expo ${i === currentStep ? 'w-12 bg-main' : 'w-4 bg-border-main opacity-20'}`} 
                     />
                 ))}
             </div>
 
             {/* Actions */}
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-4 mt-4">
                 <button 
                     onClick={handleNext}
-                    className="w-full h-14 bg-main text-app rounded-2xl font-bold flex items-center justify-center gap-3 hover:opacity-90 transition-all active:scale-[0.98]"
+                    className="btn-premium px-12 py-6 text-xs uppercase tracking-[0.3em] font-black w-full"
                 >
-                    {isLast ? "Let's Go!" : "Next Step"}
+                    {isLast ? "Enter Laboratory" : "Proceed to Next Node"}
                     {!isLast && <ArrowRight size={18} />}
                 </button>
                 
                 {!isLast && (
                     <button 
                         onClick={handleClose}
-                        className="text-xs font-bold text-dim hover:text-main py-2 transition-colors uppercase tracking-widest"
+                        className="text-[9px] font-black text-dim hover:text-main py-2 transition-all uppercase tracking-[0.4em] opacity-40 hover:opacity-100"
                     >
-                        Skip Tutorial
+                        Bypass Handshake
                     </button>
                 )}
             </div>
