@@ -60,6 +60,10 @@ interface UIState {
   // Zoom controls
   zoomLevel: number;
   setZoomLevel: (level: number) => void;
+
+  // Tutorial
+  showTutorial: boolean;
+  setShowTutorial: (show: boolean) => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -134,4 +138,8 @@ export const useUIStore = create<UIState>((set) => ({
   // Zoom
   zoomLevel: 1.0,
   setZoomLevel: (level) => set({ zoomLevel: level }),
+
+  // Tutorial
+  showTutorial: false,
+  setShowTutorial: (show) => set({ showTutorial: show }),
 }));

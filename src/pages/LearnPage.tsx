@@ -5,23 +5,37 @@ const MODULES = [
   {
     title: 'Basics of Boolean Logic',
     duration: '10 mins',
-    desc: 'Learn about A, B, and the mathematical beauty of True and False.',
-    lessons: ['The Binary Concept', 'Meet the Gates', 'Truth Tables 101'],
+    desc: 'Learn about A, B, and the mathematical beauty of True and False. We cover everything from the switch to the gate.',
+    lessons: ['The Binary Concept', 'Meet the Gates', 'Truth Tables 101', 'Sum of Products'],
     status: 'available',
   },
   {
     title: 'Sequential Logic',
     duration: '25 mins',
-    desc: 'Understanding time, clocks, and memory elements like Flip-Flops.',
-    lessons: ['Tick Tock: The Oscillator', 'State Management', 'Building a 1-bit memory'],
+    desc: 'Understanding time, clocks, and memory elements like Flip-Flops. The key to building systems that "remember".',
+    lessons: ['Tick Tock: The Oscillator', 'State Management', 'Building a 1-bit memory', 'Registers & Latches'],
+    status: 'available',
+  },
+  {
+    title: 'Arithmetic Logic Units',
+    duration: '35 mins',
+    desc: 'How computers actually do math. Building adders, subtractors, and comparators from basic gates.',
+    lessons: ['The Half Adder', 'Full Adders', 'Carry Lookahead', 'The 4-bit ALU'],
     status: 'locked',
   },
   {
     title: 'Architecting ICs',
     duration: '45 mins',
-    desc: 'Strategies for complex modular design and component packaging.',
-    lessons: ['Abstraction Patterns', 'Interface Design', 'Testing Sub-grids'],
+    desc: 'Strategies for complex modular design and component packaging. Learn the art of high-level abstraction.',
+    lessons: ['Abstraction Patterns', 'Interface Design', 'Testing Sub-grids', 'The LogicLab IC Flow'],
     status: 'locked',
+  },
+  {
+      title: 'Computer Architecture',
+      duration: '1 hour',
+      desc: 'The final frontier. Combining memory, ALUs, and control logic into a functioning 8-bit CPU.',
+      lessons: ['Instruction Sets', 'The Control Unit', 'Program Counters', 'The von Neumann Model'],
+      status: 'locked',
   }
 ];
 

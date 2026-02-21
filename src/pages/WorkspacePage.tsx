@@ -9,6 +9,8 @@ import ContextMenu from '../features/workspace/components/ContextMenu';
 import ICBuilderModal from '../features/workspace/components/ICBuilderModal';
 import PropertiesPanel from '../features/workspace/components/PropertiesPanel';
 import ProjectManagerModal from '../features/projects/components/ProjectManagerModal';
+import TutorialOverlay from '../components/common/TutorialOverlay';
+import { useEffect } from 'react';
 
 import { useUIStore } from '../store/uiStore';
 import { useAuthStore } from '../store/authStore';
@@ -22,6 +24,14 @@ export default function WorkspacePage() {
 
   const { isAuthenticated, user, signOut } = useAuthStore();
   const selectedNodeIds = useUIStore((s: any) => s.selectedNodeIds);
+  const setShowTutorial = useUIStore((s) => s.setShowTutorial);
+
+  useEffect(() => {
+    const tutorialCompleted = localStorage.getItem('logiclab_tutorial_completed');
+    if (!tutorialCompleted) {
+      setShowTutorial(true);
+    }
+  }, [setShowTutorial]);
 
   // Engine is initialized at store creation time
 
@@ -116,6 +126,9 @@ export default function WorkspacePage() {
 
         {/* Project Manager Modal */}
         <ProjectManagerModal />
+
+        {/* Tutorial Overlay */}
+        <TutorialOverlay />
       </div>
     </ReactFlowProvider>
   );
