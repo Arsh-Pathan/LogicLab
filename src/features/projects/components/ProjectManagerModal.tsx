@@ -45,7 +45,7 @@ export default function ProjectManagerModal() {
     try {
       const data = await fetchUserProjects(user.id);
       setProjects(data);
-    } catch (err) {
+    } catch {
       setError('Failed to load projects');
     } finally {
       setLoading(false);
@@ -80,7 +80,7 @@ export default function ProjectManagerModal() {
       } else {
         setError('Failed to save project');
       }
-    } catch (err) {
+    } catch {
       setError('An error occurred while saving');
     } finally {
       setLoading(false);
@@ -110,7 +110,7 @@ export default function ProjectManagerModal() {
         }
         await fetchProjects();
       }
-    } catch (err) {
+    } catch {
       setError('Failed to delete project');
     } finally {
       setLoading(false);

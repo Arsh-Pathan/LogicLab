@@ -5,15 +5,20 @@ export default function CircuitBackground() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    const container = containerRef.current;
+    if (!container) return;
+
+    // Use current width/height
+    const w = container.clientWidth;
+    const h = container.clientHeight;
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(75, w / h, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: "high-performance" });
     
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setSize(w, h);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    containerRef.current.appendChild(renderer.domElement);
+    container.appendChild(renderer.domElement);
 
     camera.position.z = 40;
 
@@ -115,7 +120,9 @@ export default function CircuitBackground() {
 
     return () => {
       window.removeEventListener('resize', handleResize);
-      containerRef.current?.removeChild(renderer.domElement);
+      window.removeEventListener('mousemove', onMouseMove);
+      container.removeChild(renderer.domElement);
+      renderer.dispose();
     };
   }, []);
 

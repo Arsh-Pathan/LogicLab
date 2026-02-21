@@ -127,7 +127,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       });
 
       return { error: null };
-    } catch (err) {
+    } catch {
       set({ loading: false });
       return { error: 'An unexpected error occurred' };
     }
@@ -156,7 +156,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       });
 
       return { error: null };
-    } catch (err) {
+    } catch {
       set({ loading: false });
       return { error: 'An unexpected error occurred' };
     }

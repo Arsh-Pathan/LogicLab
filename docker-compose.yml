@@ -6,12 +6,12 @@ services:
     build:
       context: .
       args:
-        - VITE_SUPABASE_URL=http://localhost:8000
+        - VITE_SUPABASE_URL=${API_DOMAIN:-http://localhost:8000}
         - VITE_SUPABASE_ANON_KEY=${ANON_KEY}
     ports:
       - "3000:80"
     environment:
-      - VITE_SUPABASE_URL=http://localhost:8000
+      - VITE_SUPABASE_URL=${API_DOMAIN:-http://localhost:8000}
       - VITE_SUPABASE_ANON_KEY=${ANON_KEY}
     depends_on:
       - kong
@@ -55,9 +55,9 @@ services:
     environment:
       GOTRUE_DB_DRIVER: postgres
       GOTRUE_DB_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/postgres?sslmode=disable
-      GOTRUE_SITE_URL: http://localhost:3000
-      GOTRUE_EXTERNAL_URL: http://localhost:8000/auth/v1
-      API_EXTERNAL_URL: http://localhost:8000/auth/v1
+      GOTRUE_SITE_URL: ${DOMAIN:-http://localhost:3000}
+      GOTRUE_EXTERNAL_URL: ${API_DOMAIN:-http://localhost:8000}/auth/v1
+      API_EXTERNAL_URL: ${API_DOMAIN:-http://localhost:8000}/auth/v1
       GOTRUE_JWT_SECRET: ${JWT_SECRET}
       GOTRUE_EXTERNAL_GOOGLE_ENABLED: "true"
       GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
