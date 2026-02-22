@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Plus,
-  FolderOpen,
   Trash2,
   Clock,
   Search,
@@ -12,7 +11,11 @@ import {
   FileJson,
   Loader2,
   Database,
-  Terminal
+  Terminal,
+  Activity,
+  ShieldCheck,
+  Binary,
+  Layers
 } from 'lucide-react';
 import { gsap } from 'gsap';
 import { useAuthStore } from '../store/authStore';
@@ -22,6 +25,7 @@ import { SavedProject } from '../types/circuit';
 import { fetchUserProjects, deleteProject } from '../lib/projectApi';
 import { importProject } from '../serialization/importProject';
 import Logo from '../components/common/Logo';
+import CircuitBackground from '../components/visuals/CircuitBackground';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -32,7 +36,7 @@ export default function DashboardPage() {
   const [projects, setProjects] = useState<SavedProject[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const containerRef = useRef(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const fetchProjects = useCallback(async () => {
     if (!user) return;
@@ -59,9 +63,9 @@ export default function DashboardPage() {
     if (!loading) {
       const ctx = gsap.context(() => {
         gsap.from('.reveal-item', {
-          y: 40,
+          y: 60,
           opacity: 0,
-          duration: 1,
+          duration: 1.5,
           stagger: 0.1,
           ease: 'expo.out'
         });
@@ -82,7 +86,7 @@ export default function DashboardPage() {
 
   const handleDeleteProject = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    if (!user || !window.confirm('Erase this data permanently from the logic lattice?')) return;
+    if (!user || !window.confirm('Erase this architecture from the persistent lattice?')) return;
 
     try {
       const success = await deleteProject(id, user.id);
@@ -120,152 +124,154 @@ export default function DashboardPage() {
   );
 
   return (
-    <div className="min-h-screen bg-app transition-colors duration-500 pb-32" ref={containerRef}>
-      {/* Precision Navigation */}
-      <nav className="border-b border-border-main bg-app/80 backdrop-blur-2xl sticky top-0 z-50 h-20 flex items-center shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 w-full flex items-center justify-between">
-          <button onClick={() => navigate('/home')} className="flex items-center gap-4 group">
-            <Logo size={36} />
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] opacity-50 group-hover:text-main transition-colors">Infrastructure</span>
-          </button>
-          
-          <div className="flex items-center gap-6">
-            {isAuthenticated && user ? (
-              <div className="flex items-center gap-6">
-                <div className="flex items-center gap-4 px-6 py-2 border border-border-main rounded-sm bg-neutral-50 shadow-sm">
-                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.5)]" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-main truncate max-w-[150px]">
-                    {user.email}
-                  </span>
-                </div>
-                <button
-                  onClick={signOut}
-                  className="p-3 rounded-sm text-dim hover:text-red-500 hover:bg-neutral-100 transition-all font-black"
-                >
-                  <LogOut size={18} />
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => navigate('/home')}
-                className="px-8 py-3 bg-main text-app text-[10px] font-black uppercase tracking-widest hover:invert transition-all"
-              >
-                Sync Terminal
-              </button>
+    <div ref={containerRef} className="min-h-screen bg-app text-main selection:bg-main selection:text-app relative overflow-x-hidden">
+      
+      {/* Background Decor Layer */}
+      <div className="fixed inset-0 pointer-events-none opacity-[0.02] z-0">
+         <CircuitBackground />
+      </div>
+
+      <nav className="fixed top-0 left-0 right-0 z-[100] h-20 border-b border-border-main bg-app/80 backdrop-blur-3xl px-8 flex items-center justify-between">
+         <div className="flex items-center gap-6 cursor-pointer group" onClick={() => navigate('/home')}>
+            <Logo size={28} className="group-hover:rotate-180 transition-transform duration-700" />
+            <span className="text-xl font-black uppercase tracking-tighter">LOGICLAB</span>
+         </div>
+         <div className="flex items-center gap-8">
+            {isAuthenticated && user && (
+               <div className="flex items-center gap-6 text-[9px] font-black uppercase tracking-widest text-dim italic">
+                  <span className="hidden md:block">{user.email}</span>
+                  <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                  <button onClick={signOut} className="hover:text-red-500 transition-colors">
+                     <LogOut size={16} />
+                  </button>
+               </div>
             )}
-          </div>
-        </div>
+            <button onClick={() => navigate('/sandbox')} className="btn-premium px-8 py-3">Initialization Terminal</button>
+         </div>
       </nav>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 py-20">
-        {/* Header Section */}
-        <div className="reveal-item flex flex-col md:flex-row md:items-end justify-between gap-12 mb-20">
-          <div className="space-y-6">
-            <div className="flex items-center gap-4">
-               <Database size={24} className="text-main" />
-               <span className="text-[10px] font-black uppercase tracking-[0.6em] text-dim opacity-40">System Projects</span>
+      <main className="max-w-7xl mx-auto px-8 py-48 space-y-32 relative z-10">
+         
+         {/* Registry Header */}
+         <header className="space-y-12">
+            <div className="reveal-item flex items-center gap-6 text-dim opacity-30">
+               <Database size={32} strokeWidth={1} />
+               <div className="w-[1px] h-12 bg-main" />
+               <Activity size={32} strokeWidth={1} />
             </div>
-            <h1 className="text-7xl font-black uppercase tracking-tighter leading-none">The Registry</h1>
-            <p className="text-2xl text-dim font-medium max-w-2xl leading-none tracking-tighter uppercase italic opacity-30">
-              {projects.length} verified logical architectures stored.
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-12">
+               <div className="space-y-6">
+                  <h1 className="reveal-item text-8xl md:text-9xl font-black tracking-tightest leading-none uppercase italic">
+                     THE <br /> <span className="text-gradient">REGISTRY.</span>
+                  </h1>
+                  <p className="reveal-item text-xl font-bold text-dim opacity-40 uppercase tracking-[0.5em] italic leading-none">
+                     {projects.length} Verified Architectural Traces Found.
+                  </p>
+               </div>
+               <div className="reveal-item flex gap-6">
+                  <button onClick={handleImportFile} className="btn-outline-premium px-10 py-6 group">
+                     <Upload size={16} className="group-hover:-translate-y-1 transition-transform" />
+                     Import Trace
+                  </button>
+                  <button onClick={() => navigate('/sandbox')} className="btn-premium px-10 py-6 group">
+                     <Plus size={16} className="group-hover:rotate-90 transition-transform" />
+                     New Architecture
+                  </button>
+               </div>
+            </div>
+         </header>
+
+         {/* Search Filter Port */}
+         <div className="reveal-item space-y-4 max-w-2xl">
+            <span className="text-[9px] font-black uppercase tracking-[0.5em] text-dim opacity-40 italic">Query Persistent Data</span>
+            <div className="relative group">
+               <Search size={22} className="absolute left-6 top-1/2 -translate-y-1/2 text-dim opacity-30 group-focus-within:opacity-100 transition-opacity" />
+               <input 
+                  type="text" 
+                  placeholder="LATTICE_QUERY..." 
+                  className="w-full bg-white/5 border border-border-main rounded-sm py-8 pl-18 pr-6 text-xl lowercase font-bold tracking-tight outline-none focus:border-main transition-all"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+               />
+            </div>
+         </div>
+
+         {/* Registry Lattices Feed */}
+         {loading ? (
+            <div className="py-40 flex flex-col items-center gap-8 opacity-20">
+               <Loader2 className="animate-spin" size={48} strokeWidth={1} />
+               <span className="text-[10px] font-black uppercase tracking-[0.8em]">Syncing Lattice</span>
+            </div>
+         ) : filteredProjects.length === 0 ? (
+            <div className="reveal-item py-48 border-2 border-dashed border-border-main flex flex-col items-center justify-center gap-12 opacity-30 group cursor-pointer hover:opacity-100 transition-opacity" onClick={() => navigate('/sandbox')}>
+               <Layers size={64} strokeWidth={1} className="group-hover:scale-110 transition-transform duration-700" />
+               <div className="text-center space-y-4">
+                  <h3 className="text-4xl font-black italic tracking-tighter uppercase">Registry Empty</h3>
+                  <p className="text-sm font-medium uppercase tracking-[0.2em] italic">No architectural traces detected in this sector.</p>
+               </div>
+            </div>
+         ) : (
+            <div className="grid grid-cols-1 border-t border-border-main">
+               {filteredProjects.map((project) => (
+                  <div 
+                     key={project.id}
+                     onClick={() => handleLoadProject(project)}
+                     className="reveal-item p-12 border-b border-border-main flex flex-col md:flex-row items-center justify-between gap-12 group hover:bg-neutral-50 transition-all cursor-pointer relative overflow-hidden"
+                  >
+                     <div className="flex items-center gap-12 relative z-10 w-full">
+                        <div className="w-20 h-20 bg-main text-app flex items-center justify-center rounded-sm shadow-premium group-hover:invert transition-all duration-700">
+                           <FileJson size={32} />
+                        </div>
+                        <div className="flex-1 space-y-2">
+                           <div className="flex items-center gap-4">
+                              <h3 className="text-4xl font-black italic tracking-tighter uppercase leading-none group-hover:translate-x-2 transition-transform">
+                                 {project.name}
+                              </h3>
+                              <ShieldCheck size={16} className="text-green-500 opacity-20 group-hover:opacity-100 transition-opacity" />
+                           </div>
+                           <div className="flex flex-wrap items-center gap-10 text-[9px] font-black uppercase tracking-widest text-dim opacity-40 italic">
+                              <div className="flex items-center gap-3">
+                                 <Clock size={12} />
+                                 <span>Last Sync {new Date(project.updated_at).toLocaleDateString()}</span>
+                              </div>
+                              <span className="hidden sm:block">LATTICE_ID: {project.id.slice(0, 12)}</span>
+                              <div className="flex items-center gap-3">
+                                 <Binary size={12} />
+                                 <span>Verified Stable</span>
+                              </div>
+                           </div>
+                        </div>
+                        <div className="flex items-center gap-10">
+                           <button 
+                              onClick={(e) => handleDeleteProject(e, project.id)}
+                              className="w-12 h-12 border border-border-main flex items-center justify-center text-dim hover:text-red-500 hover:border-red-500 transition-all opacity-0 group-hover:opacity-100"
+                           >
+                              <Trash2 size={18} />
+                           </button>
+                           <ArrowRight size={24} className="text-dim opacity-10 group-hover:opacity-100 group-hover:translate-x-4 transition-all" />
+                        </div>
+                     </div>
+                     {/* Hover Interaction Bar */}
+                     <div className="absolute left-0 bottom-0 w-2 h-0 bg-main group-hover:h-full transition-all duration-700" />
+                  </div>
+               ))}
+            </div>
+         )}
+
+         {/* Technical Outro */}
+         <footer className="reveal-item pt-40 border-t border-border-main text-center space-y-12">
+            <div className="flex justify-center gap-8 opacity-20">
+               <Terminal size={24} />
+               <div className="w-12 h-[1px] bg-main my-auto" />
+               <Binary size={24} />
+            </div>
+            <p className="text-[10px] font-black uppercase tracking-[0.8em] text-dim opacity-30 italic">
+               All architectures persist across the global institutional lattice.
             </p>
-          </div>
-          <div className="flex items-center gap-4">
-            <button
-              onClick={handleImportFile}
-              className="flex items-center gap-4 px-10 py-4 border border-border-main text-[10px] font-black uppercase tracking-widest hover:bg-neutral-50 transition-all"
-            >
-              <Upload size={14} /> Import Protocol
-            </button>
-            <button
-              onClick={() => navigate('/sandbox')}
-              className="flex items-center gap-4 px-10 py-4 bg-main text-app text-[10px] font-black uppercase tracking-widest hover:invert transition-all shadow-premium"
-            >
-              <Plus size={14} /> New Instance
-            </button>
-          </div>
-        </div>
+         </footer>
 
-        {/* Search Matrix */}
-        <div className="reveal-item relative mb-20 max-w-xl">
-          <Search size={22} className="absolute left-6 top-1/2 -translate-y-1/2 text-dim opacity-30" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Query persistent data..."
-            className="premium-input pl-16 py-8"
-          />
-        </div>
-
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-40">
-            <Loader2 size={40} className="text-main animate-spin mb-8 opacity-20" />
-            <span className="text-[10px] font-black uppercase tracking-[0.5em] text-dim opacity-40 italic">Retrieving Logic States</span>
-          </div>
-        ) : !isAuthenticated ? (
-          <div className="reveal-item flex flex-col items-center justify-center py-32 text-center border-2 border-border-main border-dashed opacity-50">
-            <Terminal size={60} className="text-dim mb-8" />
-            <h3 className="text-4xl font-black uppercase tracking-tighter mb-4">Authentication Required</h3>
-            <p className="text-lg text-dim font-medium mb-12 max-w-md italic tracking-tight">
-              Sign in to anchor your circuits to the cloud lattice and enable cross-institutional sync.
-            </p>
-            <button
-              onClick={() => navigate('/home')}
-              className="px-12 py-5 bg-main text-app text-[10px] font-black uppercase tracking-[0.2em] hover:invert transition-all"
-            >
-              Initialize Handshake
-            </button>
-          </div>
-        ) : filteredProjects.length === 0 ? (
-          <div className="reveal-item flex flex-col items-center justify-center py-40 text-center opacity-40 group cursor-pointer hover:opacity-100 transition-opacity" onClick={() => navigate('/sandbox')}>
-            <FolderOpen size={72} className="text-main mb-8 group-hover:scale-110 transition-transform" />
-            <h3 className="text-5xl font-black uppercase tracking-tighter mb-4">Registry Empty</h3>
-            <p className="text-xl text-dim font-medium italic">Begin a design in the sandbox to persist data.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 border-t border-border-main">
-            {filteredProjects.map((project) => (
-              <div
-                key={project.id}
-                onClick={() => handleLoadProject(project)}
-                className="reveal-item group flex items-center justify-between p-12 bg-app hover:bg-neutral-50 border-b border-border-main transition-all cursor-pointer relative overflow-hidden"
-              >
-                <div className="flex items-center gap-12 relative z-10 w-full">
-                  <div className="w-16 h-16 bg-main text-app flex items-center justify-center rounded-sm transition-all duration-700 shadow-premium group-hover:rotate-12">
-                    <FileJson size={28} />
-                  </div>
-                  
-                  <div className="flex-1 flex flex-col gap-2">
-                    <h3 className="text-4xl font-black uppercase tracking-tighter group-hover:translate-x-2 transition-transform leading-none">
-                      {project.name}
-                    </h3>
-                    <div className="flex items-center gap-8 text-[10px] font-black uppercase tracking-widest text-dim opacity-40 italic">
-                      <div className="flex items-center gap-2">
-                        <Clock size={12} />
-                        <span>Modified {new Date(project.updated_at).toLocaleDateString()}</span>
-                      </div>
-                      <span className="hidden md:inline">UID: {project.id.slice(0, 8)}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-12">
-                    <button
-                      onClick={(e) => handleDeleteProject(e, project.id)}
-                      className="p-4 rounded-sm text-dim hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100"
-                    >
-                      <Trash2 size={20} />
-                    </button>
-                    <ArrowRight size={24} className="text-dim opacity-10 group-hover:opacity-100 group-hover:translate-x-3 transition-all" />
-                  </div>
-                </div>
-                <div className="absolute left-0 top-0 w-1.5 h-full bg-main scale-y-0 group-hover:scale-y-100 transition-transform origin-top" />
-              </div>
-            ))}
-          </div>
-        )}
       </main>
+
     </div>
   );
 }

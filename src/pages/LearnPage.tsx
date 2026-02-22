@@ -1,268 +1,212 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Trophy, 
-  Zap, 
-  ArrowRight,
-  Target,
-  FlaskConical,
-  BrainCircuit,
-  Binary,
-  Lock,
-  Play,
-  CheckCircle2,
-  Clock,
-  BookOpen
-} from 'lucide-react';
+import { useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { 
+  BookOpen, 
+  Binary, 
+  Cpu, 
+  Terminal, 
+  Zap, 
+  ArrowRight, 
+  Activity, 
+  ShieldCheck, 
+  Layers, 
+  Microchip,
+  GraduationCap
+} from 'lucide-react';
+import Logo from '../components/common/Logo';
+import CircuitBackground from '../components/visuals/CircuitBackground';
 
-const MODULES = [
+gsap.registerPlugin(ScrollTrigger);
+
+const ACADEMY_CURRICULUM = [
   {
-    title: 'Silicon Foundations',
-    id: 'silicon',
-    duration: '45 mins',
-    difficulty: 'Introductory',
-    desc: 'The genesis of digital logic. Mastery of transistors, logic gates, and the electrical properties of binary signals.',
-    lessons: [
-      { title: 'Transistor Switching', time: '10m', type: 'Theory' },
-      { title: 'Gate Truth Tables', time: '15m', type: 'Lab' },
-      { title: 'NAND Minimization', time: '10m', type: 'Quiz' },
-      { title: 'Propagation Delay Theory', time: '10m', type: 'Theory' }
-    ],
-    status: 'available',
-    icon: <Binary className="w-6 h-6" />
+    level: 'Lattice Alpha',
+    title: 'Foundational Logic',
+    desc: 'The prerequisite for all digital architectural research.',
+    modules: [
+      { id: 'binary', title: 'The Binary State', text: 'Modeling deterministic true/false lattices and high-impedance states.' },
+      { id: 'gates', title: 'Primal Gate Synthesis', text: 'Analyzing signal propagation across AND, OR, and NOT primitives.' },
+      { id: 'timing', title: 'Propagation Timing', text: 'Understanding gate delays, setup times, and hold constraints.' }
+    ]
   },
   {
+    level: 'Lattice Beta',
     title: 'Combinational Systems',
-    id: 'combinational',
-    duration: '1.5 hours',
-    difficulty: 'Core',
-    desc: 'Synthesizing complex behavior from primitives. Building multiplexers, encoders, and multi-bit arithmetic units.',
-    lessons: [
-      { title: 'Karnaugh Map Mastery', time: '20m', type: 'Theory' },
-      { title: 'Adders & Subtractors', time: '30m', type: 'Lab' },
-      { title: 'The Magnitude Comparator', time: '20m', type: 'Theory' },
-      { title: 'Building a 4-bit ALU', time: '20m', type: 'Final' }
-    ],
-    status: 'available',
-    icon: <Target className="w-6 h-6" />
+    desc: 'Synthesizing complex stateless architectures with perfect precision.',
+    modules: [
+      { id: 'arithmetic', title: 'Arithmetic Units', text: 'Designing full-adders, carry-lookahead structures, and multipliers.' },
+      { id: 'encoding', title: 'Decoding & Multiplexing', text: 'Managing multi-lane signal routing and addressing protocols.' },
+      { id: 'hazards', title: 'Static Hazard Analysis', text: 'Detecting glitches and race conditions in stateless paths.' }
+    ]
   },
   {
-    title: 'Sequential Logic',
-    id: 'sequential',
-    duration: '2 hours',
-    difficulty: 'Advanced',
-    desc: 'Introducing time and memory. Understanding flip-flops, synchronous counters, and state-machine architecture.',
-    lessons: [
-      { title: 'SR vs JK Latches', time: '25m', type: 'Theory' },
-      { title: 'Edge-Triggered Theory', time: '35m', type: 'Lab' },
-      { title: 'Synchronous Counters', time: '30m', type: 'Lab' },
-      { title: 'The Finite State Machine', time: '30m', type: 'Final' }
-    ],
-    status: 'locked',
-    icon: <Zap className="w-6 h-6" />
-  },
-  {
-    title: 'Computer Architecture',
-    id: 'arch',
-    duration: '4 hours',
-    difficulty: 'Professional',
-    desc: 'The ultimate synthesis. Combining memory, processing, and control logic into a Turing-complete machine.',
-    lessons: [
-      { title: 'Von Neumann Bottleneck', time: '40m', type: 'Theory' },
-      { title: 'Instruction Set Design', time: '60m', type: 'Lab' },
-      { title: 'The Register File', time: '60m', type: 'Lab' },
-      { title: 'Building an 8-bit CPU', time: '80m', type: 'Final' }
-    ],
-    status: 'locked',
-    icon: <FlaskConical className="w-6 h-6" />
+    level: 'Lattice Gamma',
+    title: 'Sequential Mastery',
+    desc: 'Understanding time-dependent states and memory hierarchies.',
+    modules: [
+      { id: 'flipflops', title: 'Memory Primitives', text: 'Latches, Flip-Flops, and the fundamental physics of data persistence.' },
+      { id: 'fsm', title: 'Finite State Machines', text: 'Architecting deterministic state transitions for complex control logic.' },
+      { id: 'registers', title: 'Register Files', text: 'Designing high-density static RAM and register-transfer lattices.' }
+    ]
   }
 ];
 
 export default function LearnPage() {
-  const [activeModule, setActiveModule] = useState(0);
-  const containerRef = useRef(null);
-  const previewRef = useRef(null);
+  const navigate = useNavigate();
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      gsap.from('.hero-reveal', {
-        y: 60,
-        opacity: 0,
-        duration: 1.2,
-        ease: 'power4.out',
-        stagger: 0.1
+      // 1. Technical Reveal
+      const tl = gsap.timeline({ defaults: { ease: 'expo.out', duration: 1.5 } });
+      
+      tl.from('.academy-header', { y: 40, opacity: 0 });
+      tl.from('.reveal-item', { y: 30, opacity: 0, stagger: 0.1 }, "-=1");
+
+      // 2. Scroll Reveals
+      gsap.utils.toArray('.curriculum-section').forEach((section: any) => {
+        gsap.from(section, {
+          scrollTrigger: {
+            trigger: section,
+            start: 'top 85%',
+            toggleActions: 'play none none none'
+          },
+          y: 60,
+          opacity: 0,
+          duration: 1.5,
+          ease: 'power4.out'
+        });
       });
 
-      gsap.from('.module-card', {
-        x: -40,
-        opacity: 0,
-        duration: 0.8,
-        stagger: 0.1,
-        ease: 'power3.out',
-        delay: 0.4
-      });
     }, containerRef);
 
     return () => ctx.revert();
   }, []);
 
-  useEffect(() => {
-    if (previewRef.current) {
-      gsap.fromTo(previewRef.current,
-        { opacity: 0, scale: 0.98, y: 10 },
-        { opacity: 1, scale: 1, y: 0, duration: 0.5, ease: 'back.out(1.2)' }
-      );
-    }
-  }, [activeModule]);
-
   return (
-    <div className="min-h-screen bg-app transition-colors duration-500 pb-32" ref={containerRef}>
-       {/* Hero Section */}
-       <div className="pt-40 pb-24 border-b border-border-main overflow-hidden relative">
-          <div className="max-w-7xl mx-auto px-6 relative z-10">
-            <div className="flex flex-col gap-8 max-w-4xl">
-              <div className="hero-reveal flex items-center gap-5">
-                 <div className="w-16 h-16 bg-main flex items-center justify-center rounded-sm shadow-premium hover:rotate-12 transition-transform duration-500">
-                    <Trophy className="w-8 h-8 text-app" />
-                 </div>
-                 <h1 className="text-7xl font-black uppercase tracking-tighter leading-none">The Academy</h1>
-              </div>
-              <p className="hero-reveal text-4xl font-black text-dim leading-none tracking-tighter uppercase max-w-3xl">
-                Master logic from <br />
-                <span className="text-main italic">silicon to neural systems.</span>
-              </p>
-              <div className="hero-reveal flex gap-8 items-center mt-4">
-                 <div className="flex items-center gap-3">
-                    <BookOpen className="w-5 h-5 opacity-40" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-dim">152 Active Research Papers</span>
-                 </div>
-                 <div className="flex items-center gap-3">
-                    <Zap className="w-5 h-5 opacity-40" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-dim">3-Stage Certification</span>
-                 </div>
-              </div>
+    <div ref={containerRef} className="min-h-screen bg-app text-main selection:bg-main selection:text-app relative overflow-x-hidden">
+      
+      {/* Background Decor Layer */}
+      <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-0">
+         <CircuitBackground />
+      </div>
+
+      <nav className="fixed top-0 left-0 right-0 z-[100] h-20 border-b border-border-main bg-app/80 backdrop-blur-3xl px-8 flex items-center justify-between">
+         <div className="flex items-center gap-6 cursor-pointer group" onClick={() => navigate('/home')}>
+            <Logo size={28} className="group-hover:rotate-180 transition-transform duration-700" />
+            <span className="text-xl font-black uppercase tracking-tighter">LOGICLAB</span>
+         </div>
+         <div className="flex items-center gap-10">
+            <button onClick={() => navigate('/docs')} className="text-[10px] font-black uppercase tracking-widest text-dim hover:text-main">Academy</button>
+            <button onClick={() => navigate('/sandbox')} className="btn-premium px-8 py-3">Enter Registry</button>
+         </div>
+      </nav>
+
+      <main className="max-w-7xl mx-auto px-8 py-48 space-y-48 relative z-10">
+         
+         {/* Academy Header Port */}
+         <header className="academy-header space-y-12">
+            <div className="flex items-center gap-6 text-dim opacity-30">
+               <GraduationCap size={40} strokeWidth={1} />
+               <div className="w-[1px] h-16 bg-main" />
+               <BookOpen size={40} strokeWidth={1} />
             </div>
-          </div>
-          <div className="absolute right-0 top-0 text-[500px] font-black italic text-main opacity-[0.015] translate-x-1/4 -translate-y-1/4 select-none pointer-events-none">
-            01
-          </div>
-       </div>
+            <div className="space-y-6">
+               <h1 className="text-8xl md:text-9xl font-black tracking-tightest leading-none uppercase italic">
+                  THE <br /> <span className="text-gradient">ACADEMY.</span>
+               </h1>
+               <p className="text-2xl font-medium text-dim max-w-2xl leading-snug italic opacity-60 uppercase tracking-widest italic">
+                  Advanced scholarly curriculum for high-fidelity logic synthesis. 
+                  Master the architecture of the silicon lattice.
+               </p>
+            </div>
+         </header>
 
-       <div className="max-w-7xl mx-auto px-6 py-24">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-24">
-             {/* Module List */}
-             <div className="lg:col-span-7 flex flex-col gap-10">
-                <div className="flex justify-between items-end border-b border-border-main pb-8">
-                   <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-dim opacity-50 italic">Curriculum Flow</h2>
-                   <span className="text-[10px] font-black uppercase tracking-widest text-main">Phase 01: Silicon Primitives</span>
-                </div>
-                
-                {MODULES.map((mod, i) => (
-                   <div 
-                      key={i}
-                      onClick={() => mod.status !== 'locked' && setActiveModule(i)}
-                      className={`
-                        module-card group p-12 border border-transparent transition-all relative overflow-hidden rounded-sm
-                        ${mod.status === 'locked' ? 'opacity-30 grayscale cursor-not-allowed' : 'cursor-pointer hover:border-main'}
-                        ${activeModule === i ? 'bg-main text-app !opacity-100 shadow-float translate-x-4 border-main' : 'bg-transparent'}
-                      `}
-                   >
-                      <div className="flex justify-between items-start mb-8 relative z-10">
-                         <div className={`w-16 h-16 flex items-center justify-center rounded-sm transition-all duration-700 shadow-premium
-                            ${activeModule === i ? 'bg-app text-main' : 'bg-main text-app group-hover:scale-110'}`}>
-                           {mod.icon}
-                         </div>
-                         <div className="flex flex-col items-end gap-2">
-                            <div className="flex items-center gap-2">
-                               <Clock className="w-3 h-3 opacity-40" />
-                               <span className="text-[10px] font-black uppercase tracking-widest opacity-60">{mod.duration}</span>
-                            </div>
-                            <span className={`text-[9px] font-black uppercase px-3 py-1 rounded-full tracking-widest
-                               ${activeModule === i ? 'bg-white/10 text-white' : 'bg-neutral-100 text-main'}`}>
-                               {mod.difficulty}
-                            </span>
-                         </div>
-                      </div>
+         {/* Curriculum Directory */}
+         <div className="space-y-40">
+            {ACADEMY_CURRICULUM.map((section, idx) => (
+               <section key={section.title} className="curriculum-section space-y-20">
+                  <div className="flex items-end justify-between border-b border-border-main pb-12">
+                     <div className="space-y-4">
+                        <span className="text-[10px] font-black uppercase tracking-[0.8em] text-accent-blue italic">{section.level}</span>
+                        <h2 className="text-5xl md:text-6xl text-main font-black tracking-tight uppercase italic">{section.title}</h2>
+                        <p className="text-lg font-bold text-dim opacity-40 uppercase tracking-widest italic">{section.desc}</p>
+                     </div>
+                     <div className="text-dim opacity-20 hidden md:block">
+                        <span className="text-9xl font-black lowercase opacity-10">0{idx + 1}</span>
+                     </div>
+                  </div>
 
-                      <div className="relative z-10">
-                         <h3 className="text-4xl font-black tracking-tighter mb-4 uppercase leading-none">{mod.title}</h3>
-                         <p className={`text-lg leading-relaxed font-medium mb-10 max-w-xl transition-colors duration-500
-                            ${activeModule === i ? 'text-white/60' : 'text-dim'}`}>
-                           {mod.desc}
-                         </p>
-                      </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-1px bg-border-main border border-border-main shadow-float overflow-hidden">
+                     {section.modules.map((module) => (
+                        <div key={module.id} className="bg-app p-12 space-y-12 group hover:bg-neutral-50 transition-colors cursor-crosshair relative overflow-hidden">
+                           <div className="flex justify-between items-start">
+                              <div className="w-14 h-14 bg-main text-app flex items-center justify-center rounded-sm shadow-premium group-hover:scale-110 transition-transform duration-700">
+                                 {module.id === 'binary' ? <Binary size={24} /> : module.id === 'gates' ? <Microchip size={24} /> : <Activity size={24} />}
+                              </div>
+                              <span className="text-[10px] font-black uppercase tracking-widest opacity-20 group-hover:opacity-100 transition-opacity">Module Active</span>
+                           </div>
+                           
+                           <div className="space-y-6">
+                              <h3 className="text-2xl font-black italic tracking-tighter uppercase leading-none">{module.title}</h3>
+                              <p className="text-sm font-medium text-dim opacity-60 leading-relaxed uppercase tracking-widest italic group-hover:opacity-100 transition-opacity">
+                                 {module.text}
+                              </p>
+                           </div>
 
-                      {mod.status === 'locked' ? (
-                         <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest opacity-40">
-                            <Lock className="w-4 h-4" /> prerequisite required
-                         </div>
-                      ) : (
-                         <div className="flex items-center gap-6">
-                            <button className={`flex items-center gap-4 px-10 py-4 font-black uppercase text-[10px] tracking-[0.25em] transition-all
-                               ${activeModule === i ? 'bg-app text-main hover:invert' : 'bg-main text-app hover:invert'}`}>
-                               Begin Phase <Play className="w-3 h-3 fill-current" />
-                            </button>
-                         </div>
-                      )}
-                   </div>
-                ))}
-             </div>
+                           <div className="pt-8 border-t border-border-main flex justify-between items-center opacity-40 group-hover:opacity-100 transition-opacity">
+                              <div className="flex items-center gap-3 text-[9px] font-black uppercase tracking-widest">
+                                 <ShieldCheck size={12} className="text-green-500" />
+                                 <span>Academic Grade</span>
+                              </div>
+                              <button className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-main hover:gap-6 transition-all">
+                                 Begin <ArrowRight size={14} />
+                              </button>
+                           </div>
 
-             {/* Preview/Active Panel */}
-             <div className="lg:col-span-5 relative">
-                <div className="lg:sticky lg:top-32 h-fit" ref={previewRef}>
-                   <div className="glass-card p-16 flex flex-col gap-12 border-main border-2">
-                      <div className="flex flex-col gap-6">
-                         <div className="flex items-center gap-3">
-                            <Activity className="w-5 h-5 text-main animate-pulse" />
-                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-dim opacity-50">Active Exploration</span>
-                         </div>
-                         <h2 className="text-5xl font-black tracking-tighter leading-[0.85] uppercase">
-                           {MODULES[activeModule].title}
-                         </h2>
-                         <div className="w-24 h-2 bg-main"></div>
-                      </div>
+                           {/* Technical Background Number */}
+                           <div className="absolute right-4 top-4 text-4xl font-black italic opacity-[0.03] group-hover:opacity-[0.06] transition-opacity">
+                              {module.id.slice(0, 2).toUpperCase()}
+                           </div>
+                        </div>
+                     ))}
+                  </div>
+               </section>
+            ))}
+         </div>
 
-                      <div className="space-y-10">
-                         <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-dim border-b border-border-main pb-4">Lab Syllabus Content</h4>
-                         <div className="flex flex-col gap-2">
-                            {MODULES[activeModule].lessons.map((lesson, j) => (
-                               <div 
-                                 key={j} 
-                                 className="group flex items-center justify-between p-8 bg-app hover:bg-neutral-50 border-b border-border-main transition-all cursor-pointer"
-                               >
-                                  <div className="flex items-center gap-10">
-                                     <span className="text-3xl font-black text-dim italic opacity-10 group-hover:opacity-40 transition-opacity">0{j+1}</span>
-                                     <div className="flex flex-col gap-1">
-                                        <span className="text-xl font-black tracking-tighter uppercase">{lesson.title}</span>
-                                        <span className="text-[9px] font-black uppercase tracking-widest text-dim opacity-50">{lesson.type} • {lesson.time}</span>
-                                     </div>
-                                   </div>
-                                   <div className="w-10 h-10 rounded-full border border-border-main flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-1">
-                                      <ArrowRight className="w-4 h-4" />
-                                   </div>
-                               </div>
-                            ))}
-                         </div>
-                      </div>
+         {/* Scholars Call */}
+         <section className="reveal-item py-40 bg-main text-app text-center space-y-12 relative overflow-hidden">
+            <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] bg-[size:40px_40px]" />
+            <div className="relative z-10 space-y-8">
+               <h2 className="text-7xl font-black italic tracking-tightest uppercase">Ready to <br /> graduate?</h2>
+               <p className="text-xl font-medium opacity-60 max-w-xl mx-auto leading-relaxed uppercase tracking-widest italic">
+                  Combine your academy knowledge to build persistent architectural patterns 
+                  and contribute to the peer-reviewed registry.
+               </p>
+               <button 
+                  onClick={() => navigate('/sandbox')}
+                  className="px-20 py-8 bg-app text-main font-black uppercase tracking-[0.5em] text-xs hover:invert transition-all flex items-center gap-8 shadow-2xl mx-auto group"
+               >
+                  ENTER TERMINAL PORT
+                  <Zap size={20} className="group-hover:rotate-12 transition-transform" />
+               </button>
+            </div>
+         </section>
 
-                      <div className="p-12 bg-main text-app rounded-sm relative overflow-hidden shadow-2xl mt-8">
-                         <Binary className="absolute -right-16 -bottom-16 w-60 h-60 opacity-10 rotate-12" />
-                         <div className="relative z-10">
-                           <h4 className="text-2xl font-black uppercase tracking-tighter mb-4">Scholars Resources</h4>
-                           <p className="opacity-60 text-sm leading-relaxed mb-10 font-medium italic">
-                             Automated verification labs, VHDL hardware handbooks, and industrial-grade primitive kits.
-                           </p>
-                           <button className="w-full py-5 bg-app text-main font-black uppercase tracking-[0.3em] text-[10px] hover:invert transition-all">
-                              Download Phase Assets
-                           </button>
-                         </div>
-                      </div>
-                   </div>
-                </div>
-             </div>
-          </div>
-       </div>
+      </main>
+
+      <footer className="py-24 border-t border-border-main text-center opacity-30 italic">
+         <div className="flex justify-center gap-8 mb-6">
+            <Layers size={20} />
+            <Terminal size={20} />
+            <Cpu size={20} />
+         </div>
+         <span className="text-[9px] font-black uppercase tracking-[0.8em]">Institutional Syllabus // TR-STABLE</span>
+      </footer>
+
     </div>
   );
 }

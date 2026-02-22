@@ -1,11 +1,18 @@
 import { Outlet } from 'react-router-dom';
-import { useUIStore } from '../store/uiStore';
 
+/**
+ * MainLayout
+ * High-Prestige Institutional Wrapper (v12)
+ * Provides the global structural lattice for all academy terminal ports.
+ */
 export default function MainLayout() {
-  const theme = useUIStore((s: any) => s.theme);
-
   return (
-    <div className={`min-h-screen transition-colors duration-500 ${theme === 'dark' ? 'bg-[#02040a] text-white' : 'bg-gray-50 text-gray-900'}`}>
+    <div className="min-h-screen bg-app text-main selection:bg-main selection:text-app">
+      {/* 
+          Lattice Container: 
+          Individual pages manage their own overflow and navigation layers 
+          to support cinematic transitions and technical overlays.
+      */}
       <Outlet />
     </div>
   );

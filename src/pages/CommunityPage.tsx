@@ -3,13 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import {
   Globe,
   Search,
-  CircuitBoard,
   Clock,
   ArrowRight,
   Loader2,
-  Sparkles,
-  CircuitBoard as CircuitIcon,
-  Code2
+  CircuitBoard,
+  Database,
+  ShieldCheck,
+  Share2,
+  Terminal,
+  Unplug
 } from 'lucide-react';
 import { gsap } from 'gsap';
 import { useCircuitStore } from '../store/circuitStore';
@@ -17,6 +19,7 @@ import { useProjectStore } from '../store/projectStore';
 import { fetchPublishedCircuits } from '../lib/projectApi';
 import { importProject } from '../serialization/importProject';
 import Logo from '../components/common/Logo';
+import CircuitBackground from '../components/visuals/CircuitBackground';
 
 interface PublishedCircuit {
   id: string;
@@ -57,11 +60,11 @@ export default function CommunityPage() {
     if (!loading) {
       const ctx = gsap.context(() => {
         gsap.from('.reveal-item', {
-          y: 30,
+          y: 60,
           opacity: 0,
-          duration: 0.8,
-          stagger: 0.05,
-          ease: 'power3.out'
+          duration: 1.5,
+          stagger: 0.1,
+          ease: 'expo.out'
         });
       }, containerRef);
       return () => ctx.revert();
@@ -77,151 +80,139 @@ export default function CommunityPage() {
     }
   };
 
-  const filteredCircuits = circuits.filter((c) =>
-    c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    c.description?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   const exampleCircuits: PublishedCircuit[] = [
-    {
-      id: 'ex-1',
-      project_id: 'ex-1',
-      user_id: 'system',
-      name: 'Half Adder',
-      description: 'A basic half adder circuit using XOR and AND gates to compute sum and carry of two single-bit inputs.',
-      data: { version: '1.0.0', name: 'Half Adder', description: '', createdAt: '', updatedAt: '', nodes: [], connections: [], customICs: [] },
-      published_at: '2026-01-15',
-    },
-    {
-      id: 'ex-2',
-      project_id: 'ex-2',
-      user_id: 'system',
-      name: 'SR Latch',
-      description: 'A basic Set-Reset latch built with NOR gates, demonstrating sequential logic and memory.',
-      data: { version: '1.0.0', name: 'SR Latch', description: '', createdAt: '', updatedAt: '', nodes: [], connections: [], customICs: [] },
-      published_at: '2026-01-20',
-    },
-    {
-      id: 'ex-3',
-      project_id: 'ex-3',
-      user_id: 'system',
-      name: '4-Bit Counter',
-      description: 'A synchronous 4-bit binary counter using clock-driven JK flip-flops chained together.',
-      data: { version: '1.0.0', name: '4-Bit Counter', description: '', createdAt: '', updatedAt: '', nodes: [], connections: [], customICs: [] },
-      published_at: '2026-02-01',
-    },
-    {
-      id: 'ex-4',
-      project_id: 'ex-4',
-      user_id: 'system',
-      name: 'ALU (4-Bit)',
-      description: 'A 4-bit Arithmetic Logic Unit supporting addition, subtraction, AND, OR, and XOR operations.',
-      data: { version: '1.0.0', name: 'ALU (4-Bit)', description: '', createdAt: '', updatedAt: '', nodes: [], connections: [], customICs: [] },
-      published_at: '2026-02-18',
-    }
+    { id: '1', project_id: '1', user_id: 'scholar_01', name: 'RISC-V Core Pattern', description: 'Deterministic 32-bit execution lattice following IEEE silicon standards.', published_at: '2026-02-15', data: {} },
+    { id: '2', project_id: '2', user_id: 'scholar_42', name: '4-Bit Carry-Lookahead', description: 'High-speed addition module with optimized propagation delay verification.', published_at: '2026-02-18', data: {} },
+    { id: '3', project_id: '3', user_id: 'scholar_09', name: 'Neuromorphic Synapse', description: 'Experimental logic gate array modeling biological signal integration.', published_at: '2026-02-20', data: {} }
   ];
 
-  const displayCircuits = filteredCircuits.length > 0 ? filteredCircuits : (searchQuery ? [] : exampleCircuits);
+  const displayCircuits = circuits.length > 0 ? circuits : (searchQuery ? [] : exampleCircuits);
 
   return (
-    <div className="min-h-screen bg-app transition-colors duration-500 pb-32" ref={containerRef}>
-      {/* Precision Navigation */}
-      <nav className="border-b border-border-main bg-app/80 backdrop-blur-2xl sticky top-0 z-50 h-20 flex items-center">
-        <div className="max-w-7xl mx-auto px-6 w-full flex items-center justify-between">
-          <button onClick={() => navigate('/home')} className="flex items-center gap-4 group">
-            <Logo size={36} />
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] group-hover:text-main transition-colors opacity-50">Infrastructure</span>
-          </button>
-          
-          <div className="flex items-center gap-8">
-            <button onClick={() => navigate('/dashboard')} className="text-[10px] font-black uppercase tracking-widest text-dim hover:text-main transition-colors">
-              Registry
-            </button>
-            <button onClick={() => navigate('/sandbox')} className="px-6 py-2 border border-border-main text-[10px] font-black uppercase tracking-widest hover:bg-main hover:text-app transition-all">
-              Initialize Lab
-            </button>
+    <div className="min-h-screen bg-app text-main selection:bg-main selection:text-app" ref={containerRef}>
+      
+      {/* Navigation Layer */}
+      <nav className="border-b border-border-main bg-app/80 backdrop-blur-3xl sticky top-0 z-[100] h-20 flex items-center">
+        <div className="max-w-7xl mx-auto px-8 w-full flex items-center justify-between">
+          <div className="flex items-center gap-6 cursor-pointer group" onClick={() => navigate('/home')}>
+            <Logo size={28} className="group-hover:rotate-180 transition-transform duration-700" />
+            <span className="text-xl font-black uppercase tracking-tighter">LOGICLAB</span>
+          </div>
+          <div className="flex gap-10">
+             <button onClick={() => navigate('/docs')} className="text-[10px] font-black uppercase tracking-widest text-dim hover:text-main">Academy</button>
+             <button onClick={() => navigate('/sandbox')} className="text-[10px] font-black uppercase tracking-widest text-main">Terminal</button>
           </div>
         </div>
       </nav>
 
-      {/* High-Prestige Hero */}
-      <div className="pt-32 pb-20 border-b border-border-main relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
-          <div className="reveal-item flex items-center gap-4 mb-8">
-            <Globe size={24} className="text-main" />
-            <span className="text-[10px] font-black uppercase tracking-[0.6em] text-dim opacity-50">Global Laboratory Sync</span>
-          </div>
-          <h1 className="reveal-item text-7xl font-black tracking-tighter uppercase leading-[0.8] mb-8">
-            Circuit <br />Archaeology
-          </h1>
-          <p className="reveal-item text-2xl text-dim font-medium max-w-2xl leading-snug tracking-tight">
-            Explore the peer-verified library of digital systems. <br />
-            <span className="text-main italic font-bold">Standardized logic for a modular future.</span>
-          </p>
-        </div>
-        <div className="absolute right-0 top-0 text-[400px] font-black italic text-main opacity-[0.015] translate-x-1/4 -translate-y-1/4 pointer-events-none select-none">
-          HUB
-        </div>
-      </div>
+      <main className="max-w-7xl mx-auto px-8 py-32 space-y-32">
+        
+        {/* Header Protocol */}
+        <header className="space-y-12">
+           <div className="reveal-item flex items-center gap-6 text-dim opacity-30">
+              <Globe size={32} strokeWidth={1} />
+              <div className="w-[1px] h-12 bg-main" />
+              <Database size={32} strokeWidth={1} />
+           </div>
+           <div className="space-y-6">
+              <h1 className="reveal-item text-8xl md:text-9xl font-black tracking-tightest leading-none uppercase italic">
+                 GLOBAL <br /> <span className="text-gradient">REGISTRY.</span>
+              </h1>
+              <p className="reveal-item text-2xl font-medium text-dim max-w-2xl leading-snug italic opacity-60 uppercase tracking-widest italic">
+                 The shared logical lattice of peer-verified architectures. 
+                 Explore, audit, and synthesize architectural traces contributed by the academy.
+              </p>
+           </div>
+        </header>
 
-      {/* Search & Grid */}
-      <main className="max-w-7xl mx-auto px-6 py-20">
-        <div className="reveal-item flex items-center gap-6 mb-16 max-w-2xl">
-          <div className="relative flex-1">
-            <Search size={20} className="absolute left-6 top-1/2 -translate-y-1/2 text-dim opacity-40" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Query the logic lattice..."
-              className="premium-input pl-16 py-8"
-            />
-          </div>
+        {/* Global Search Interface */}
+        <div className="reveal-item space-y-4 max-w-2xl">
+           <span className="text-[9px] font-black uppercase tracking-[0.5em] text-dim opacity-40 italic">Query Registry Trace</span>
+           <div className="relative group">
+              <Search size={20} className="absolute left-6 top-1/2 -translate-y-1/2 text-dim opacity-30 group-focus-within:opacity-100 transition-opacity" />
+              <input 
+                 type="text" 
+                 placeholder="LATTICE_ID..." 
+                 className="w-full bg-white/5 border border-border-main rounded-sm py-8 pl-18 pr-6 text-xl lowercase font-bold tracking-tight outline-none focus:border-main transition-all"
+                 value={searchQuery}
+                 onChange={(e) => setSearchQuery(e.target.value)}
+              />
+           </div>
         </div>
 
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-40">
-            <Loader2 size={40} className="text-main animate-spin mb-6 opacity-20" />
-            <span className="text-[10px] font-black uppercase tracking-[0.5em] text-dim opacity-50">Syncing Peer Data</span>
-          </div>
+        {/* Assets Feed */}
+        {loading && circuits.length === 0 ? (
+           <div className="py-40 flex flex-col items-center gap-8 opacity-20">
+              <Loader2 className="animate-spin" size={48} strokeWidth={1} />
+              <span className="text-[10px] font-black uppercase tracking-[0.8em]">Syncing Lattice</span>
+           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1px bg-border-main border border-border-main shadow-premium">
-            {displayCircuits.map((circuit) => (
-              <div
-                key={circuit.id}
-                onClick={() => handleLoadCircuit(circuit)}
-                className="reveal-item text-left p-12 bg-app hover:bg-neutral-50 transition-all group relative cursor-pointer"
-              >
-                <div className="flex items-start justify-between mb-10">
-                  <div className="w-14 h-14 bg-main text-app flex items-center justify-center rounded-sm group-hover:scale-110 transition-transform shadow-premium">
-                    <CircuitIcon size={24} />
-                  </div>
-                  <Sparkles size={16} className="text-dim opacity-20 group-hover:opacity-100 group-hover:text-main transition-all" />
-                </div>
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1px bg-border-main border border-border-main shadow-float overflow-hidden">
+             {displayCircuits.map((item, i) => (
+                <div 
+                   key={item.id} 
+                   onClick={() => handleLoadCircuit(item)}
+                   className="reveal-item bg-app p-12 space-y-12 group hover:bg-neutral-50 transition-colors cursor-crosshair relative"
+                >
+                   <div className="flex justify-between items-start">
+                      <div className="w-16 h-16 bg-main text-app flex items-center justify-center rounded-sm shadow-premium group-hover:scale-110 transition-transform duration-700">
+                         {i % 2 === 0 ? <CircuitBoard size={28} /> : <Terminal size={28} />}
+                      </div>
+                      <div className="flex items-center gap-3 text-dim opacity-20 group-hover:opacity-100 transition-all">
+                         <ShieldCheck size={16} className="text-green-500" />
+                         <span className="text-[9px] font-black uppercase tracking-widest">Verified</span>
+                      </div>
+                   </div>
 
-                <div className="space-y-4">
-                  <h3 className="text-2xl font-black uppercase tracking-tighter leading-none group-hover:translate-x-2 transition-transform">
-                    {circuit.name}
-                  </h3>
-                  <p className="text-sm text-dim font-medium leading-relaxed line-clamp-2 opacity-60 italic group-hover:opacity-100 transition-opacity">
-                    {circuit.description || 'No technical specification provided.'}
-                  </p>
-                </div>
+                   <div className="space-y-4">
+                      <h3 className="text-3xl font-black italic tracking-tighter uppercase leading-none">{item.name}</h3>
+                      <p className="text-sm font-medium text-dim opacity-60 leading-relaxed uppercase tracking-widest italic group-hover:opacity-100 transition-opacity">
+                         {item.description || 'No technical specification provided for this lattice trace.'}
+                      </p>
+                   </div>
 
-                <div className="mt-12 pt-8 border-t border-border-main flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-dim opacity-40">
-                    <Clock size={12} />
-                    <span>Published {new Date(circuit.published_at).toLocaleDateString()}</span>
-                  </div>
-                  <button className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest group-hover:gap-6 transition-all">
-                    Sync <ArrowRight size={14} />
-                  </button>
+                   <div className="pt-10 border-t border-border-main flex justify-between items-center">
+                      <div className="flex flex-col gap-1">
+                         <span className="text-[8px] font-black uppercase tracking-widest opacity-30 italic">Revision Log</span>
+                         <div className="flex items-center gap-3 text-[9px] font-black uppercase tracking-widest text-dim">
+                            <Clock size={12} />
+                            <span>{new Date(item.published_at).toLocaleDateString()}</span>
+                         </div>
+                      </div>
+                      <button className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-main hover:gap-6 transition-all">
+                         Synthesize <ArrowRight size={14} />
+                      </button>
+                   </div>
+
+                   <div className="absolute left-0 bottom-0 w-2 h-0 bg-main group-hover:h-full transition-all duration-700" />
                 </div>
-              </div>
-            ))}
-          </div>
+             ))}
+           </div>
         )}
+
+        {/* Institutional Outro */}
+        <section className="reveal-item py-40 border-t border-border-main text-center space-y-12">
+           <div className="flex justify-center gap-6 opacity-20">
+              <Share2 size={24} />
+              <div className="w-12 h-[1px] bg-main my-auto" />
+              <Unplug size={24} />
+           </div>
+           <h2 className="text-6xl font-black italic tracking-tightest uppercase">Contribute your <br /> architectural trace.</h2>
+           <button 
+            onClick={() => navigate('/sandbox')}
+            className="btn-premium px-16 py-8 text-xs font-black relative group"
+           >
+              Initialize Contribution Port
+              <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+           </button>
+        </section>
+
       </main>
+
+      {/* Background Decor */}
+      <div className="fixed inset-0 pointer-events-none opacity-[0.02] z-0">
+         <CircuitBackground />
+      </div>
     </div>
   );
 }

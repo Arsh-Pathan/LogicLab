@@ -7,6 +7,9 @@ import DashboardPage from './pages/DashboardPage';
 import CommunityPage from './pages/CommunityPage';
 import DocsPage from './pages/DocsPage';
 import LearnPage from './pages/LearnPage';
+import NotFoundPage from './pages/NotFoundPage';
+import MobileWarning from './pages/MobileWarning';
+
 import MainLayout from './layouts/MainLayout';
 import AuthModal from './features/auth/components/AuthModal';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -20,6 +23,7 @@ export default function App() {
   const theme = useUIStore((s: any) => s.theme);
   const initialize = useAuthStore((s) => s.initialize);
   const [isLoading, setIsLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
 
   // Initialize keyboard shortcuts
   useKeyboard();
@@ -34,36 +38,54 @@ export default function App() {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
-  if (isLoading) {
-    return <LoadingScreen onComplete={() => setIsLoading(false)} />;
-  }
+  // Mobile Detection
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   return (
     <BrowserRouter>
-      {/* Global Auth Modal */}
+      {/* Auth Portal */}
       <AuthModal />
 
+      {/* Institutional Loading Overlay */}
+      {isLoading && (
+        <LoadingScreen onComplete={() => setIsLoading(false)} />
+      )}
+
       <Routes>
-        <Route element={<MainLayout />}>
-          <Route path="/home" element={<HomePage />} />
-          <Route path="/docs" element={<DocsPage />} />
-          <Route path="/learn" element={<LearnPage />} />
-          <Route path="/community" element={<CommunityPage />} />
+        <Route path="/" element={<MainLayout />}>
+          {/* Index Redirect */}
+          <Route index element={<Navigate to="/home" replace />} />
+
+          {/* Main Terminal Ports */}
+          <Route path="home" element={isMobile ? <MobileWarning /> : <HomePage />} />
+          <Route path="docs" element={<DocsPage />} />
+          <Route path="academy" element={<LearnPage />} />
+          <Route path="community" element={<CommunityPage />} />
           
-          <Route path="/sandbox" element={
+          {/* Secure Simulation Ports */}
+          <Route path="sandbox" element={
             <ProtectedRoute>
-              <WorkspacePage />
+              {isMobile ? <MobileWarning /> : <WorkspacePage />}
             </ProtectedRoute>
           } />
           
-          <Route path="/dashboard" element={
+          {/* User Registry */}
+          <Route path="dashboard" element={
             <ProtectedRoute>
               <DashboardPage />
             </ProtectedRoute>
           } />
 
-          <Route path="/" element={<Navigate to="/home" replace />} />
-          <Route path="*" element={<Navigate to="/home" replace />} />
+          {/* Catch-All / Error Ports */}
+          <Route path="mobile-warning" element={<MobileWarning />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
