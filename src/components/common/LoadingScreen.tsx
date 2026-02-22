@@ -6,7 +6,7 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
   const containerRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
   const pulseRef = useRef<SVGSVGElement>(null);
-  const [status, setStatus] = useState('Initializing Core');
+  const [, setStatus] = useState('Initializing Core');
 
   useEffect(() => {
     const ctx = gsap.context(() => {

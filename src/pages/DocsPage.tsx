@@ -4,11 +4,9 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { 
   Search, 
-  Book, 
   Cpu, 
   Zap, 
   Layers, 
-  Terminal, 
   Activity, 
   ShieldCheck, 
   Binary, 

@@ -1,6 +1,6 @@
 import { ReactFlowProvider } from 'reactflow';
 import { useNavigate } from 'react-router-dom';
-import { Save, FolderOpen, Home, LogIn, User, LogOut, Globe, Package } from 'lucide-react';
+import { Save, FolderOpen, Home, LogIn, LogOut, Globe, Package } from 'lucide-react';
 
 import Canvas from '../features/workspace/components/Canvas';
 import Toolbar from '../features/workspace/components/Toolbar';
