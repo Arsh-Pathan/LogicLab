@@ -285,10 +285,9 @@ p {
 }
 
 .react-flow__node {
-  border-radius: 2px !important;
-  background: var(--bg-panel) !important;
-  border: 1px solid var(--border-main) !important;
-  box-shadow: var(--shadow-premium) !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
   padding: 0 !important;
 }
 

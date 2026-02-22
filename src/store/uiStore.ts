@@ -8,6 +8,8 @@ interface UIState {
 
   showComponentPalette: boolean;
   showPropertiesPanel: boolean;
+  propertiesPanelWidth: number;
+  setPropertiesPanelWidth: (width: number) => void;
   isToolbarVisible: boolean;
   activeSidebarTab: 'library' | 'properties' | 'none';
   
@@ -71,8 +73,10 @@ export const useUIStore = create<UIState>((set) => ({
     set({ contextMenu: { visible: false, x: 0, y: 0 } }),
 
   // Panels & Theme
-  showComponentPalette: true,
-  showPropertiesPanel: true,
+  showComponentPalette: false,
+  showPropertiesPanel: false, // Default hidden to keep workspace clean
+  propertiesPanelWidth: 320,
+  setPropertiesPanelWidth: (w) => set({ propertiesPanelWidth: Math.max(250, Math.min(600, w)) }),
   isToolbarVisible: true,
   activeSidebarTab: 'properties',
   theme: 'dark',

@@ -32,6 +32,7 @@ import {
 } from '../types/circuit';
 import { SimulationEngine } from '../engine/SimulationEngine';
 import { isGateType } from '../engine/gates';
+import { fetchCustomICs, saveICDefinition } from '../lib/icApi';
 
 // ============================================================
 // Helper: Create default pins for a component type
@@ -243,7 +244,7 @@ export const useCircuitStore = create<CircuitState>((set, get) => {
     engine,
     simulationMode: 'live',
     signalCache: new Map(),
-    customICs: [],
+    customICs: fetchCustomICs(),
     history: [],
     historyIndex: -1,
     maxHistorySize: 50,
@@ -844,6 +845,9 @@ export const useCircuitStore = create<CircuitState>((set, get) => {
         outputPins,
         createdAt: new Date().toISOString(),
       };
+
+      // Persist to localStorage
+      saveICDefinition(icDef);
 
       set((state) => ({
         customICs: [...state.customICs, icDef],

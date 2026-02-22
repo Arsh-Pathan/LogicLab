@@ -481,13 +481,11 @@ export class SimulationEngine {
     // Map parent inputs to sub-engine input nodes
     def.inputPins.forEach((mapping: any) => {
       const parentSignal = node.inputs.get(mapping.pinId);
-      if (parentSignal !== undefined) {
-        subEngine.setInputValue(mapping.nodeId, parentSignal as Signal);
-      }
+      subEngine.setInputValue(mapping.nodeId, (parentSignal as Signal) ?? 0);
     });
 
-    // Run sub-engine evaluation
-    subEngine.evaluate();
+    // Force full recompute to ensure static graphs propagate correctly regardless of caching
+    subEngine.recomputeAll();
 
     // Map sub-engine output nodes to parent outputs
     const outputs = new Map<string, Signal>();

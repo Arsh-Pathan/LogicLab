@@ -31,7 +31,7 @@ function OutputNode({ data, selected }: NodeProps<CircuitNodeData>) {
           transition-all duration-75 relative overflow-hidden
           ${selected 
             ? 'border-[var(--selection-color)] !scale-110 !z-[100]' 
-            : (isHigh ? 'bg-accent-blue border-white' : 'bg-card border-border-muted')
+            : (isHigh ? 'bg-accent-blue border-white shadow-[0_0_20px_rgba(14,165,233,0.5)]' : 'bg-app border-border-muted hover:border-border-main')
           }
         `}
       >

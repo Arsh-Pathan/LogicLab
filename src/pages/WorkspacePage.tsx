@@ -8,19 +8,24 @@ import StatusBar from '../features/workspace/components/StatusBar';
 import ContextMenu from '../features/workspace/components/ContextMenu';
 import ICBuilderModal from '../features/workspace/components/ICBuilderModal';
 import PropertiesPanel from '../features/workspace/components/PropertiesPanel';
+import ICLibraryPanel from '../features/workspace/components/ICLibraryPanel';
 import ProjectManagerModal from '../features/projects/components/ProjectManagerModal';
 import TutorialOverlay from '../components/common/TutorialOverlay';
-import { useEffect } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 
 import { useUIStore } from '../store/uiStore';
 
 export default function WorkspacePage() {
   const navigate = useNavigate();
   const showPropertiesPanel = useUIStore((s: any) => s.showPropertiesPanel);
+  const propertiesPanelWidth = useUIStore((s: any) => s.propertiesPanelWidth);
+  const setPropertiesPanelWidth = useUIStore((s: any) => s.setPropertiesPanelWidth);
   const setShowICBuilder = useUIStore((s: any) => s.setShowICBuilder);
   const setShowProjectManager = useUIStore((s) => s.setShowProjectManager);
   const selectedNodeIds = useUIStore((s: any) => s.selectedNodeIds);
   const setShowTutorial = useUIStore((s) => s.setShowTutorial);
+  const showComponentPalette = useUIStore((s: any) => s.showComponentPalette);
+  const toggleComponentPalette = useUIStore((s: any) => s.toggleComponentPalette);
 
   useEffect(() => {
     const tutorialCompleted = localStorage.getItem('logiclab_tutorial_completed');
@@ -28,6 +33,30 @@ export default function WorkspacePage() {
       setShowTutorial(true);
     }
   }, [setShowTutorial]);
+
+  const isResizing = useRef(false);
+
+  const startResizing = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    isResizing.current = true;
+    document.body.style.cursor = 'col-resize';
+
+    const handleMouseMove = (mouseEvent: MouseEvent) => {
+      if (!isResizing.current) return;
+      const newWidth = document.body.clientWidth - mouseEvent.clientX;
+      setPropertiesPanelWidth(newWidth);
+    };
+
+    const handleMouseUp = () => {
+      isResizing.current = false;
+      document.body.style.cursor = 'default';
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  }, [setPropertiesPanelWidth]);
 
   return (
     <ReactFlowProvider>
@@ -70,6 +99,16 @@ export default function WorkspacePage() {
           >
             <Package size={12} /> Package IC
           </button>
+          <button
+            onClick={toggleComponentPalette}
+            className={`flex items-center gap-2 px-4 py-1.5 rounded-sm transition-all text-[10px] font-black uppercase tracking-[0.2em] ${
+              showComponentPalette 
+                ? 'bg-main text-app shadow-sm' 
+                : 'text-dim hover:text-main hover:bg-neutral-100'
+            }`}
+          >
+            <Package size={12} className={showComponentPalette ? 'text-blue-400' : ''} /> IC Library
+          </button>
 
           <div className="flex-1" />
 
@@ -84,13 +123,26 @@ export default function WorkspacePage() {
 
         {/* Main Research Workspace */}
         <div className="flex-1 flex overflow-hidden relative">
+          {/* IC Library Panel */}
+          <ICLibraryPanel />
+
           {/* Simulation Canvas */}
           <Canvas />
 
           {/* System Properties Panel */}
           {showPropertiesPanel && (
-            <aside className="w-80 bg-panel border-l border-border-main shrink-0 overflow-y-auto shadow-premium z-10">
-              <PropertiesPanel />
+            <aside 
+              className="bg-panel border-l border-border-main shrink-0 relative flex shadow-premium z-10"
+              style={{ width: `${propertiesPanelWidth}px` }}
+            >
+              {/* Resizable drag handle */}
+              <div 
+                className="absolute left-0 top-0 bottom-0 w-1.5 -translate-x-1/2 cursor-col-resize hover:bg-accent-blue/50 z-50 transition-colors"
+                onMouseDown={startResizing}
+              />
+              <div className="flex-1 min-w-0 overflow-y-auto">
+                <PropertiesPanel />
+              </div>
             </aside>
           )}
         </div>

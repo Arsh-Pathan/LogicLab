@@ -6,19 +6,17 @@ import {
   Clock,
   Search,
   Upload,
-  LogOut,
   ArrowRight,
   FileJson,
   Loader2,
   Database,
   Terminal,
   Activity,
-  ShieldCheck,
   Binary,
-  Layers
+  Layers,
+  ShieldCheck
 } from 'lucide-react';
 import { gsap } from 'gsap';
-import { useAuthStore } from '../store/authStore';
 import { useProjectStore } from '../store/projectStore';
 import { useCircuitStore } from '../store/circuitStore';
 import { SavedProject } from '../types/circuit';
@@ -29,7 +27,6 @@ import CircuitBackground from '../components/visuals/CircuitBackground';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
-  const { user, isAuthenticated, signOut } = useAuthStore();
   const { setProjectId, setProjectName } = useProjectStore();
   const loadCircuit = useCircuitStore((s: any) => s.loadCircuit);
 
@@ -39,25 +36,20 @@ export default function DashboardPage() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const fetchProjects = useCallback(async () => {
-    if (!user) return;
     setLoading(true);
     try {
-      const data = await fetchUserProjects(user.id);
+      const data = await fetchUserProjects();
       setProjects(data);
     } catch (err) {
       console.error('Failed to fetch projects:', err);
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, []);
 
   useEffect(() => {
-    if (isAuthenticated && user) {
-      fetchProjects();
-    } else {
-      setLoading(false);
-    }
-  }, [isAuthenticated, user, fetchProjects]);
+    fetchProjects();
+  }, [fetchProjects]);
 
   useEffect(() => {
     if (!loading) {
@@ -86,10 +78,10 @@ export default function DashboardPage() {
 
   const handleDeleteProject = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    if (!user || !window.confirm('Erase this architecture from the persistent lattice?')) return;
+    if (!window.confirm('Erase this architecture from the persistent lattice?')) return;
 
     try {
-      const success = await deleteProject(id, user.id);
+      const success = await deleteProject(id);
       if (success) {
         setProjects((prev) => prev.filter((p) => p.id !== id));
       }
@@ -137,15 +129,7 @@ export default function DashboardPage() {
             <span className="text-xl font-black uppercase tracking-tighter">LOGICLAB</span>
          </div>
          <div className="flex items-center gap-8">
-            {isAuthenticated && user && (
-               <div className="flex items-center gap-6 text-[9px] font-black uppercase tracking-widest text-dim italic">
-                  <span className="hidden md:block">{user.email}</span>
-                  <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                  <button onClick={signOut} className="hover:text-red-500 transition-colors">
-                     <LogOut size={16} />
-                  </button>
-               </div>
-            )}
+            <button onClick={() => navigate('/community')} className="text-[10px] font-black uppercase tracking-widest text-dim hover:text-main transition-colors">Registry</button>
             <button onClick={() => navigate('/sandbox')} className="btn-premium px-8 py-3">Initialization Terminal</button>
          </div>
       </nav>
@@ -169,11 +153,11 @@ export default function DashboardPage() {
                   </p>
                </div>
                <div className="reveal-item flex gap-6">
-                  <button onClick={handleImportFile} className="btn-outline-premium px-10 py-6 group">
+                  <button onClick={handleImportFile} className="btn-outline-premium px-10 py-6 group flex items-center gap-3">
                      <Upload size={16} className="group-hover:-translate-y-1 transition-transform" />
                      Import Trace
                   </button>
-                  <button onClick={() => navigate('/sandbox')} className="btn-premium px-10 py-6 group">
+                  <button onClick={() => navigate('/sandbox')} className="btn-premium px-10 py-6 group flex items-center gap-3">
                      <Plus size={16} className="group-hover:rotate-90 transition-transform" />
                      New Architecture
                   </button>
@@ -266,7 +250,7 @@ export default function DashboardPage() {
                <Binary size={24} />
             </div>
             <p className="text-[10px] font-black uppercase tracking-[0.8em] text-dim opacity-30 italic">
-               All architectures persist across the global institutional lattice.
+               All architectures persist in this terminal's local lattice.
             </p>
          </footer>
 

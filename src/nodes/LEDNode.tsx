@@ -9,42 +9,41 @@ function LEDNode({ data, selected }: NodeProps<CircuitNodeData>) {
 
   return (
     <div
-      className="relative flex items-center gap-1"
+      className="relative flex items-center justify-center w-12 h-12"
       style={{ transform: `rotate(${rotation}deg)` }}
     >
       <Handle
         type="target"
         position={Position.Left}
         id="in_0"
-        className="!w-2.5 !h-2.5 !rounded-full !border-2 transition-colors"
-        style={{
-          backgroundColor: isHigh ? '#22c55e' : '#1f2937',
-          borderColor: isHigh ? '#22c55e' : '#4b5563',
-        }}
+        className={`!w-3 !h-3 !rounded-full !border-[3px] !-ml-1 transition-colors z-10 
+          ${isHigh ? '!bg-accent-blue !border-white' : '!bg-app !border-muted hover:!border-main'}
+        `}
       />
 
-      <div className="flex flex-col items-center">
+      <div
+        className={`
+          w-10 h-10 rounded-full border-[3px] flex items-center justify-center
+          transition-all duration-75 absolute
+          ${selected 
+            ? 'border-[var(--selection-color)] !scale-110 !z-[100]' 
+            : (isHigh ? 'bg-red-500 border-red-400 shadow-[0_0_15px_rgba(239,68,68,0.5)]' : 'bg-app border-border-muted hover:border-border-main')}
+        `}
+      >
         <div
-          className={`
-            w-10 h-10 rounded-full border-2 flex items-center justify-center
-            transition-all duration-75
-            ${selected ? 'border-[var(--selection-color)] !scale-110 !z-[100]' : (isHigh ? 'bg-red-500 border-red-400' : 'bg-card border-border-muted')}
-          `}
-        >
-          <div
-            className={`w-5 h-5 rounded-full transition-all duration-75 ${
-              isHigh
-                ? 'bg-red-300'
-                : 'bg-dim/20'
-            }`}
-          />
-        </div>
-        <div
-          className="text-[8px] uppercase tracking-wider text-dim mt-1"
-          style={{ transform: `rotate(-${rotation}deg)` }}
-        >
-          {label}
-        </div>
+          className={`w-5 h-5 rounded-full transition-all duration-75 ${
+            isHigh
+              ? 'bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)]'
+              : 'bg-dim/10'
+          }`}
+        />
+      </div>
+      
+      <div
+        className="absolute -bottom-6 text-[9px] font-black uppercase tracking-widest text-dim text-center w-32"
+        style={{ transform: `rotate(-${rotation}deg)` }}
+      >
+        {label}
       </div>
     </div>
   );

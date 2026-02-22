@@ -1,2 +1,2 @@
-// This file is deprecated. Please use src/pages/HomePage.tsx instead.
+// DEPRECATED FILE — Neutralized for cleanup
 export default function Home() { return null; }

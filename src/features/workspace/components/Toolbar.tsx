@@ -107,12 +107,7 @@ export default function Toolbar() {
   const simulationMode = useCircuitStore((s: any) => s.simulationMode);
   const setSimulationMode = useCircuitStore((s: any) => s.setSimulationMode);
 
-  const { 
-    theme,
-    toggleTheme,
-    setDragging
-  } = useUIStore();
-  
+  const { theme, toggleTheme, setDragging } = useUIStore();
   const projectName = useProjectStore((s: any) => s.projectName);
 
   const handleDragStart = useCallback((event: DragEvent, type: ComponentType) => {
@@ -136,10 +131,9 @@ export default function Toolbar() {
   const isLive = simulationMode === 'live';
 
   return (
-    <header className="h-24 bg-app border-b border-border-main flex items-center px-10 z-[100] relative shrink-0 w-full transition-all">
-      
+    <header className="h-24 bg-app border-b border-border-main flex items-center px-10 z-[100] relative shrink-0 w-full transition-all overflow-hidden text-clip">
       {/* 1. Brand Infrastructure */}
-      <div className="flex items-center gap-6 pr-10 mr-10 border-r border-border-main">
+      <div className="flex items-center gap-6 pr-6 mr-6 border-r border-border-main shrink-0">
         <Logo size={42} className="hover:rotate-12 transition-transform duration-700" />
         <div className="flex flex-col">
           <h1 className="text-[20px] font-black uppercase tracking-tighter text-main leading-none">LogicLab</h1>
@@ -148,91 +142,46 @@ export default function Toolbar() {
       </div>
 
       {/* 2. Laboratory Infrastructure */}
-      <div className="flex items-center gap-12">
+      <div className="flex items-center gap-8 shrink-0">
         <div className="flex flex-col">
           <SectionLabel>Infrastructure</SectionLabel>
           <div className="flex items-center gap-2">
-            <ToolButton 
-              label="Toggle Input" 
-              variant="terminal" 
-              icon={<ToggleLeft size={20} />} 
-              onClick={() => addNode('INPUT', { x: 0, y: 0 })}
-              draggable
-              onDragStart={(e) => handleDragStart(e, 'INPUT')}
-            />
-            <ToolButton 
-              label="Clock Grid" 
-              variant="terminal" 
-              icon={<Clock size={20} />} 
-              onClick={() => addNode('CLOCK', { x: 0, y: 0 })}
-              draggable
-              onDragStart={(e) => handleDragStart(e, 'CLOCK')}
-            />
-            <ToolButton 
-              label="Decade Counter" 
-              variant="terminal" 
-              icon={<div className="text-[10px] font-black leading-none italic">7</div>} 
-              onClick={() => addNode('SEVEN_SEGMENT', { x: 0, y: 0 })}
-              draggable
-              onDragStart={(e) => handleDragStart(e, 'SEVEN_SEGMENT')}
-            />
-            <ToolButton 
-              label="Visual Node" 
-              variant="terminal" 
-              icon={<Circle size={20} />} 
-              onClick={() => addNode('LED', { x: 0, y: 0 })}
-              draggable
-              onDragStart={(e) => handleDragStart(e, 'LED')}
-            />
+            <ToolButton label="Toggle Input" variant="terminal" icon={<ToggleLeft size={20} />} onClick={() => addNode('INPUT', { x: 0, y: 0 })} draggable onDragStart={(e) => handleDragStart(e, 'INPUT')} />
+            <ToolButton label="Clock Grid" variant="terminal" icon={<Clock size={20} />} onClick={() => addNode('CLOCK', { x: 0, y: 0 })} draggable onDragStart={(e) => handleDragStart(e, 'CLOCK')} />
+            <ToolButton label="Decade Counter" variant="terminal" icon={<div className="text-[10px] font-black leading-none italic">7</div>} onClick={() => addNode('SEVEN_SEGMENT', { x: 0, y: 0 })} draggable onDragStart={(e) => handleDragStart(e, 'SEVEN_SEGMENT')} />
+            <ToolButton label="Visual Node" variant="terminal" icon={<Circle size={20} />} onClick={() => addNode('LED', { x: 0, y: 0 })} draggable onDragStart={(e) => handleDragStart(e, 'LED')} />
           </div>
         </div>
 
-        {/* 3. Logic Synthesis */}
         <div className="flex flex-col">
           <SectionLabel>Logic Synthesis</SectionLabel>
           <div className="flex items-center gap-1.5">
             {['AND', 'OR', 'NOT', 'BUFFER', 'NAND', 'NOR', 'XOR', 'XNOR'].map((g) => (
-              <ToolButton 
-                key={g} 
-                variant="gate" 
-                label={`${g}`}
-                icon={<GateSymbol type={g} />} 
-                onClick={() => addNode(g as ComponentType, { x: 0, y: 0 })} 
-                draggable
-                onDragStart={(e) => handleDragStart(e, g as ComponentType)}
-              />
+              <ToolButton key={g} variant="gate" label={g} icon={<GateSymbol type={g} />} onClick={() => addNode(g as ComponentType, { x: 0, y: 0 })} draggable onDragStart={(e) => handleDragStart(e, g as ComponentType)} />
             ))}
           </div>
         </div>
       </div>
 
       {/* Persistence State */}
-      <div className="flex-1 flex flex-col items-center justify-center mx-12">
-         <span className="text-[8px] font-black text-dim uppercase tracking-[0.6em] mb-2 opacity-30">Active Research Frame</span>
-         <div className="flex items-center gap-3 group cursor-pointer">
-           <span className="text-[14px] font-black text-main uppercase tracking-[0.2em] truncate max-w-[240px] leading-none group-hover:scale-105 transition-transform">{projectName || 'UNTITLED_PROTOCOL'}</span>
-           <ChevronDown size={14} className="text-dim opacity-20 group-hover:opacity-100 transition-all" />
-         </div>
+      <div className="flex-1 min-w-[120px] flex flex-col items-center justify-center mx-6">
+        <span className="text-[8px] font-black text-dim uppercase tracking-[0.6em] mb-2 opacity-30">Active Frame</span>
+        <div className="flex items-center gap-3 group cursor-pointer">
+          <span className="text-[14px] font-black text-main uppercase tracking-[0.2em] truncate max-w-[240px] leading-none group-hover:scale-105 transition-transform">{projectName || 'UNTITLED_PROTOCOL'}</span>
+          <ChevronDown size={14} className="text-dim opacity-20 group-hover:opacity-100 transition-all" />
+        </div>
       </div>
 
       {/* 4. Core Propulsion State */}
-      <div className="flex items-center gap-8 px-10 border-l border-border-main h-full">
-         <div className="flex flex-col items-end gap-2">
-            <span className="text-[9px] font-black text-dim uppercase tracking-widest opacity-40">Core Propulsion</span>
-            <div className="flex items-center gap-3">
-               <span className={`text-[9px] font-black uppercase tracking-widest ${isLive ? 'text-main' : 'text-dim opacity-30'}`}>
-                  {isLive ? 'ACTIVE' : 'STASIS'}
-               </span>
-               <div className={`w-2.5 h-2.5 rounded-full ${isLive ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)] animate-pulse' : 'bg-neutral-200'}`} />
-            </div>
-         </div>
-         <ToolButton 
-           variant="accent"
-           active={isLive}
-           label={isLive ? "Stasis Mode" : "Ignite Engine"}
-           icon={<Zap size={24} className={isLive ? "fill-current" : ""} />} 
-           onClick={() => setSimulationMode(isLive ? 'frozen' : 'live')}
-         />
+      <div className="flex items-center gap-6 px-6 border-l border-border-main h-full shrink-0">
+        <div className="flex flex-col items-end gap-2">
+          <span className="text-[9px] font-black text-dim uppercase tracking-widest opacity-40">Core Propulsion</span>
+          <div className="flex items-center gap-3">
+            <span className={`text-[9px] font-black uppercase tracking-widest ${isLive ? 'text-main' : 'text-dim opacity-30'}`}>{isLive ? 'ACTIVE' : 'STASIS'}</span>
+            <div className={`w-2.5 h-2.5 rounded-full ${isLive ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)] animate-pulse' : 'bg-neutral-200'}`} />
+          </div>
+        </div>
+        <ToolButton variant="accent" active={isLive} label={isLive ? "Stasis Mode" : "Ignite Engine"} icon={<Zap size={24} className={isLive ? "fill-current" : ""} />} onClick={() => setSimulationMode(isLive ? 'frozen' : 'live')} />
       </div>
 
       {/* 5. Terminal Controls */}

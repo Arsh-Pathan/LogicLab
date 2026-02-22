@@ -21,7 +21,7 @@ export default function ICBuilderModal() {
   [nodes, selectedNodeIds]);
 
   const potentialPorts = useMemo(() =>
-    selectedNodes.filter((n: any) => n.data.type === 'INPUT' || n.data.type === 'OUTPUT'),
+    selectedNodes.filter((n: any) => n.data.type === 'INPUT' || n.data.type === 'OUTPUT' || n.data.type === 'LED'),
   [selectedNodes]);
 
   const handleSave = useCallback(() => {
@@ -141,7 +141,7 @@ export default function ICBuilderModal() {
                   <div>
                     <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Outputs</h4>
                     <div className="grid grid-cols-2 gap-2">
-                      {potentialPorts.filter((n: any) => n.data.type === 'OUTPUT').map((n: any) => (
+                      {potentialPorts.filter((n: any) => n.data.type === 'OUTPUT' || n.data.type === 'LED').map((n: any) => (
                         <button 
                           key={n.id}
                           onClick={() => toggleOutput(n.id)}
@@ -155,7 +155,7 @@ export default function ICBuilderModal() {
                           <div className={`w-4 h-4 rounded-full border-2 ${outputs.includes(n.id) ? 'bg-blue-500 border-blue-500' : 'border-gray-600'}`} />
                         </button>
                       ))}
-                      {potentialPorts.filter((n: any) => n.data.type === 'OUTPUT').length === 0 && (
+                      {potentialPorts.filter((n: any) => n.data.type === 'OUTPUT' || n.data.type === 'LED').length === 0 && (
                         <div className="col-span-2 text-center py-4 bg-gray-800/50 border border-dashed border-gray-700 rounded-lg text-xs text-gray-600">
                           No output terminals selected
                         </div>

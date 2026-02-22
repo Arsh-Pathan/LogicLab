@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Globe,
@@ -11,58 +11,59 @@ import {
   ShieldCheck,
   Share2,
   Terminal,
-  Unplug
+  Unplug,
+  Plus,
+  Trash2,
+  Layers,
+  FileJson
 } from 'lucide-react';
 import { gsap } from 'gsap';
 import { useCircuitStore } from '../store/circuitStore';
 import { useProjectStore } from '../store/projectStore';
-import { fetchPublishedCircuits } from '../lib/projectApi';
+import { fetchPublishedCircuits, fetchUserProjects, deleteProject } from '../lib/projectApi';
 import { importProject } from '../serialization/importProject';
 import Logo from '../components/common/Logo';
 import CircuitBackground from '../components/visuals/CircuitBackground';
-
-interface PublishedCircuit {
-  id: string;
-  project_id: string;
-  user_id: string;
-  name: string;
-  description: string;
-  data: any;
-  published_at: string;
-}
+import { SavedProject } from '../types/circuit';
 
 export default function CommunityPage() {
   const navigate = useNavigate();
   const loadCircuit = useCircuitStore((s: any) => s.loadCircuit);
-  const { setProjectName } = useProjectStore();
+  const { setProjectId, setProjectName } = useProjectStore();
 
-  const [circuits, setCircuits] = useState<PublishedCircuit[]>([]);
+  const [circuits, setCircuits] = useState<any[]>([]);
+  const [localProjects, setLocalProjects] = useState<SavedProject[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const containerRef = useRef(null);
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      try {
-        const data = await fetchPublishedCircuits();
-        setCircuits(data);
-      } catch (err) {
-        console.error('Failed to fetch circuits:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [remote, local] = await Promise.all([
+        fetchPublishedCircuits(),
+        fetchUserProjects()
+      ]);
+      setCircuits(remote);
+      setLocalProjects(local);
+    } catch (err) {
+      console.error('Failed to fetch data:', err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   useEffect(() => {
     if (!loading) {
       const ctx = gsap.context(() => {
         gsap.from('.reveal-item', {
-          y: 60,
+          y: 30,
           opacity: 0,
-          duration: 1.5,
+          duration: 1,
           stagger: 0.1,
           ease: 'expo.out'
         });
@@ -71,22 +72,40 @@ export default function CommunityPage() {
     }
   }, [loading]);
 
-  const handleLoadCircuit = (circuit: PublishedCircuit) => {
+  const handleLoadCircuit = (circuit: any) => {
     const result = importProject(JSON.stringify(circuit.data));
     if (result) {
       loadCircuit(result.nodes, result.edges, result.customICs);
+      setProjectId(circuit.id || null);
       setProjectName(circuit.name);
       navigate('/sandbox');
     }
   };
 
-  const exampleCircuits: PublishedCircuit[] = [
-    { id: '1', project_id: '1', user_id: 'scholar_01', name: 'RISC-V Core Pattern', description: 'Deterministic 32-bit execution lattice following IEEE silicon standards.', published_at: '2026-02-15', data: {} },
-    { id: '2', project_id: '2', user_id: 'scholar_42', name: '4-Bit Carry-Lookahead', description: 'High-speed addition module with optimized propagation delay verification.', published_at: '2026-02-18', data: {} },
-    { id: '3', project_id: '3', user_id: 'scholar_09', name: 'Neuromorphic Synapse', description: 'Experimental logic gate array modeling biological signal integration.', published_at: '2026-02-20', data: {} }
+  const handleDeleteLocal = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (!window.confirm('Erase this architecture from the persistent lattice?')) return;
+    const success = await deleteProject(id);
+    if (success) {
+      setLocalProjects(prev => prev.filter(p => p.id !== id));
+    }
+  };
+
+  const exampleCircuits = [
+    { id: 'ex-1', name: 'RISC-V Core Pattern', description: 'Deterministic 32-bit execution lattice following IEEE silicon standards.', published_at: new Date().toISOString(), data: {} },
+    { id: 'ex-2', name: '4-Bit Carry-Lookahead', description: 'High-speed addition module with optimized propagation delay verification.', published_at: new Date().toISOString(), data: {} },
+    { id: 'ex-3', name: 'Neuromorphic Synapse', description: 'Experimental logic gate array modeling biological signal integration.', published_at: new Date().toISOString(), data: {} }
   ];
 
-  const displayCircuits = circuits.length > 0 ? circuits : (searchQuery ? [] : exampleCircuits);
+  const remoteToDisplay = circuits.length > 0 ? circuits : (searchQuery ? [] : exampleCircuits);
+  
+  const filteredLocal = localProjects.filter(p => 
+    p.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  
+  const filteredRemote = remoteToDisplay.filter((p: any) => 
+    p.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="min-h-screen bg-app text-main selection:bg-main selection:text-app" ref={containerRef}>
@@ -100,7 +119,7 @@ export default function CommunityPage() {
           </div>
           <div className="flex gap-10">
              <button onClick={() => navigate('/docs')} className="text-[10px] font-black uppercase tracking-widest text-dim hover:text-main">Academy</button>
-             <button onClick={() => navigate('/sandbox')} className="text-[10px] font-black uppercase tracking-widest text-main">Terminal</button>
+             <button onClick={() => navigate('/sandbox')} className="btn-premium px-6 py-2">Initialize Lab</button>
           </div>
         </div>
       </nav>
@@ -116,7 +135,7 @@ export default function CommunityPage() {
            </div>
            <div className="space-y-6">
               <h1 className="reveal-item text-8xl md:text-9xl font-black tracking-tightest leading-none uppercase italic">
-                 GLOBAL <br /> <span className="text-gradient">REGISTRY.</span>
+                 THE <br /> <span className="text-gradient">REGISTRY.</span>
               </h1>
               <p className="reveal-item text-2xl font-medium text-dim max-w-2xl leading-snug italic opacity-60 uppercase tracking-widest italic">
                  The shared logical lattice of peer-verified architectures. 
@@ -140,55 +159,106 @@ export default function CommunityPage() {
            </div>
         </div>
 
-        {/* Assets Feed */}
-        {loading && circuits.length === 0 ? (
-           <div className="py-40 flex flex-col items-center gap-8 opacity-20">
-              <Loader2 className="animate-spin" size={48} strokeWidth={1} />
-              <span className="text-[10px] font-black uppercase tracking-[0.8em]">Syncing Lattice</span>
-           </div>
-        ) : (
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1px bg-border-main border border-border-main shadow-float overflow-hidden">
-             {displayCircuits.map((item, i) => (
-                <div 
-                   key={item.id} 
-                   onClick={() => handleLoadCircuit(item)}
-                   className="reveal-item bg-app p-12 space-y-12 group hover:bg-neutral-50 transition-colors cursor-crosshair relative"
-                >
-                   <div className="flex justify-between items-start">
-                      <div className="w-16 h-16 bg-main text-app flex items-center justify-center rounded-sm shadow-premium group-hover:scale-110 transition-transform duration-700">
-                         {i % 2 === 0 ? <CircuitBoard size={28} /> : <Terminal size={28} />}
-                      </div>
-                      <div className="flex items-center gap-3 text-dim opacity-20 group-hover:opacity-100 transition-all">
-                         <ShieldCheck size={16} className="text-green-500" />
-                         <span className="text-[9px] font-black uppercase tracking-widest">Verified</span>
-                      </div>
-                   </div>
+        {/* Local Registry */}
+        <section className="space-y-12">
+            <div className="reveal-item flex items-center justify-between border-b border-border-main pb-8">
+               <div className="space-y-2">
+                  <h2 className="text-3xl font-black uppercase tracking-tightest italic">Local Registry</h2>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-dim opacity-40">Architectures stored in this terminal</p>
+               </div>
+               <button onClick={() => navigate('/sandbox')} className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-dim hover:text-main transition-all group">
+                  <Plus size={14} className="group-hover:rotate-90 transition-transform" />
+                  New Synthesis
+               </button>
+            </div>
 
-                   <div className="space-y-4">
-                      <h3 className="text-3xl font-black italic tracking-tighter uppercase leading-none">{item.name}</h3>
-                      <p className="text-sm font-medium text-dim opacity-60 leading-relaxed uppercase tracking-widest italic group-hover:opacity-100 transition-opacity">
-                         {item.description || 'No technical specification provided for this lattice trace.'}
-                      </p>
-                   </div>
-
-                   <div className="pt-10 border-t border-border-main flex justify-between items-center">
-                      <div className="flex flex-col gap-1">
-                         <span className="text-[8px] font-black uppercase tracking-widest opacity-30 italic">Revision Log</span>
-                         <div className="flex items-center gap-3 text-[9px] font-black uppercase tracking-widest text-dim">
-                            <Clock size={12} />
-                            <span>{new Date(item.published_at).toLocaleDateString()}</span>
-                         </div>
-                      </div>
-                      <button className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-main hover:gap-6 transition-all">
-                         Synthesize <ArrowRight size={14} />
-                      </button>
-                   </div>
-
-                   <div className="absolute left-0 bottom-0 w-2 h-0 bg-main group-hover:h-full transition-all duration-700" />
+            {loading ? (
+                <div className="py-20 flex flex-col items-center gap-6 opacity-20">
+                    <Loader2 className="animate-spin" size={32} />
+                    <span className="text-[9px] font-black uppercase tracking-widest italic">Syncing Frames</span>
                 </div>
-             ))}
-           </div>
-        )}
+            ) : filteredLocal.length === 0 ? (
+                <div onClick={() => navigate('/sandbox')} className="reveal-item h-60 border-2 border-dashed border-border-main rounded-sm flex flex-col items-center justify-center gap-6 opacity-30 hover:opacity-100 transition-opacity cursor-pointer group">
+                    <Layers size={48} strokeWidth={1} className="group-hover:scale-110 transition-transform duration-700" />
+                    <span className="text-xs font-black uppercase tracking-widest italic">Registry Empty // Begin Synthesis</span>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1px bg-border-main border border-border-main">
+                    {filteredLocal.map(p => (
+                        <div key={p.id} onClick={() => handleLoadCircuit(p)} className="reveal-item bg-app p-12 space-y-12 group hover:bg-neutral-50 transition-colors cursor-crosshair relative overflow-hidden">
+                            <div className="flex justify-between items-start">
+                                <div className="w-16 h-16 bg-main text-app flex items-center justify-center rounded-sm shadow-premium group-hover:invert transition-all duration-700">
+                                    <FileJson size={28} />
+                                </div>
+                                <button onClick={(e) => handleDeleteLocal(e, p.id)} className="p-3 text-dim hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all">
+                                    <Trash2 size={16} />
+                                </button>
+                            </div>
+                            <div className="space-y-2">
+                                <h3 className="text-3xl font-black italic tracking-tighter uppercase truncate leading-none">{p.name}</h3>
+                                <div className="flex items-center gap-3 text-[9px] font-black uppercase tracking-widest text-dim opacity-40">
+                                    <Clock size={12} />
+                                    <span>Sync {new Date(p.updated_at).toLocaleDateString()}</span>
+                                </div>
+                            </div>
+                            <div className="absolute left-0 bottom-0 w-2 h-0 bg-main group-hover:h-full transition-all duration-700" />
+                        </div>
+                    ))}
+                </div>
+            )}
+        </section>
+
+        {/* Universal Registry */}
+        <section className="space-y-12">
+            <div className="reveal-item flex items-center justify-between border-b border-border-main pb-8">
+               <div className="space-y-2">
+                  <h2 className="text-3xl font-black uppercase tracking-tightest italic">Universal Registry</h2>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-dim opacity-40">Peer-verified academic references</p>
+               </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1px bg-border-main border border-border-main">
+              {filteredRemote.map((item: any, i: number) => (
+                 <div 
+                    key={item.id} 
+                    onClick={() => handleLoadCircuit(item)}
+                    className="reveal-item bg-app p-12 space-y-12 group hover:bg-neutral-50 transition-colors cursor-crosshair relative"
+                 >
+                    <div className="flex justify-between items-start">
+                       <div className="w-16 h-16 bg-main text-app flex items-center justify-center rounded-sm shadow-premium group-hover:scale-110 transition-transform duration-700">
+                          {i % 2 === 0 ? <CircuitBoard size={28} /> : <Terminal size={28} />}
+                       </div>
+                       <div className="flex items-center gap-3 text-dim opacity-20 group-hover:opacity-100 transition-all">
+                          <ShieldCheck size={16} className="text-green-500" />
+                          <span className="text-[9px] font-black uppercase tracking-widest">Verified</span>
+                       </div>
+                    </div>
+
+                    <div className="space-y-4">
+                       <h3 className="text-3xl font-black italic tracking-tighter uppercase leading-none">{item.name}</h3>
+                       <p className="text-sm font-medium text-dim opacity-60 leading-relaxed uppercase tracking-widest italic group-hover:opacity-100 transition-opacity">
+                          {item.description || 'No technical specification provided for this lattice trace.'}
+                       </p>
+                    </div>
+
+                    <div className="pt-10 border-t border-border-main flex justify-between items-center">
+                       <div className="flex flex-col gap-1">
+                          <span className="text-[8px] font-black uppercase tracking-widest opacity-30 italic">Revision Log</span>
+                          <div className="flex items-center gap-3 text-[9px] font-black uppercase tracking-widest text-dim">
+                             <Clock size={12} />
+                             <span>{new Date(item.published_at).toLocaleDateString()}</span>
+                          </div>
+                       </div>
+                       <button className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-main hover:gap-6 transition-all">
+                          Synthesize <ArrowRight size={14} />
+                       </button>
+                    </div>
+
+                    <div className="absolute left-0 bottom-0 w-2 h-0 bg-main group-hover:h-full transition-all duration-700" />
+                 </div>
+              ))}
+            </div>
+        </section>
 
         {/* Institutional Outro */}
         <section className="reveal-item py-40 border-t border-border-main text-center space-y-12">

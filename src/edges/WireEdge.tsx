@@ -17,12 +17,12 @@ function WireEdge({
   source,
   sourceHandleId,
 }: EdgeProps) {
-  const engine = useCircuitStore((s) => s.engine);
   const simulationMode = useCircuitStore((s) => s.simulationMode);
-
-  // Get live signal from engine
-  const sourceOutputs = engine.getNodeOutputs(source);
-  const signal = sourceOutputs.get(sourceHandleId ?? 'out');
+  
+  // Get live signal from properly reactive signalCache
+  const signalCache = useCircuitStore((s) => s.signalCache);
+  const nodeSignals = signalCache.get(source);
+  const signal = nodeSignals?.get(sourceHandleId ?? 'out') ?? 0;
   const isHigh = signal === 1;
   const isFrozen = simulationMode === 'frozen';
 
@@ -37,18 +37,10 @@ function WireEdge({
     borderRadius: 16, // Smoother corners
   });
 
-  const strokeColor = isFrozen
-    ? '#f59e0b' 
-    : isHigh
-      ? '#3b82f6' 
-      : '#334155';
+  const strokeColor = isFrozen ? '#f59e0b' : isHigh ? '#ffffff' : '#334155';
 
   return (
     <>
-      {/* Removed keyframes */}
-      
-      {/* Removed Glow Layer */}
-      
       {/* Background/Shadow Layer */}
       <path
         d={edgePath}
@@ -58,17 +50,39 @@ function WireEdge({
         strokeLinecap="round"
       />
       
-      {/* Main Tactical Wire */}
+      {/* Base Idle Track */}
       <path
         d={edgePath}
         fill="none"
-        stroke={strokeColor}
+        stroke="#334155"
         strokeWidth={selected ? 3 : 2.5}
         strokeLinecap="round"
-        className="transition-colors duration-200"
       />
 
-      {/* Removed Flow Animation Layer */}
+      {/* Active White Flowing Wave */}
+      {isHigh && (
+        <path
+          d={edgePath}
+          fill="none"
+          stroke={strokeColor}
+          strokeWidth={selected ? 3 : 2.5}
+          strokeLinecap="round"
+          style={{
+            strokeDasharray: !isFrozen ? '8, 12' : 'none',
+            filter: 'drop-shadow(0 0 6px rgba(255,255,255,0.8))',
+          }}
+        >
+          {!isFrozen && (
+            <animate
+              attributeName="stroke-dashoffset"
+              from="20"
+              to="0"
+              dur="0.5s"
+              repeatCount="indefinite"
+            />
+          )}
+        </path>
+      )}
 
       {/* Interaction layer */}
       <path

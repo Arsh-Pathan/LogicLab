@@ -63,7 +63,7 @@ function ClockNode({ data, selected, id }: NodeProps<CircuitNodeData>) {
         className={`
           w-24 h-24 rounded-[2rem] border-4 flex flex-col items-center justify-between
           transition-all duration-75 select-none relative overflow-hidden p-3
-          ${selected ? 'border-[var(--selection-color)] scale-[1.02]' : (isHigh && !isFrozen ? 'bg-red-600/90 border-red-400' : 'bg-node border-border-muted')}
+          ${selected ? 'border-[var(--selection-color)] scale-[1.02]' : (isHigh && !isFrozen ? 'bg-red-500 border-red-400 shadow-[0_0_20px_rgba(239,68,68,0.5)]' : 'bg-app border-border-muted')}
         `}
         style={{ transform: `rotate(-${rotation}deg)` }}
       >

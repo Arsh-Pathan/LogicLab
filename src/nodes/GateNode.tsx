@@ -71,42 +71,55 @@ function GateNode({ data, selected }: NodeProps<CircuitNodeData>) {
         >
           <defs />
 
+          {/* Opaque base to occlude wires passing behind the gate */}
           <path
             d={getGatePath(type, nodeWidth, nodeHeight)}
-            fill={isHigh ? `${gateColor}15` : 'transparent'}
-            stroke={selected ? 'var(--selection-color)' : (isHigh ? gateColor : 'var(--border-main)')}
+            fill="var(--bg-app)"
+          />
+
+          <path
+            d={getGatePath(type, nodeWidth, nodeHeight)}
+            fill={isHigh ? `${gateColor}15` : 'var(--bg-panel)'}
+            stroke={selected ? 'var(--selection-color)' : (isHigh ? gateColor : 'var(--text-muted)')}
             strokeWidth={selected ? 4 : 3}
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="transition-all duration-75"
           />
           
           {isX && (
             <path
               d={`M -6,${nodeHeight*0.1} Q 2,${nodeHeight*0.5} -6,${nodeHeight*0.9}`}
               fill="none"
-              stroke={selected ? 'var(--selection-color)' : (isHigh ? gateColor : 'var(--border-main)')}
+              stroke={selected ? 'var(--selection-color)' : (isHigh ? gateColor : 'var(--text-muted)')}
               strokeWidth={selected ? 4 : 3}
               strokeLinecap="round"
             />
           )}
 
           {isInverted && (
-            <circle
-              cx={nodeWidth + 8}
-              cy={nodeHeight * 0.5}
-              r={5}
-              fill="var(--bg-node)"
-              stroke={selected ? 'var(--selection-color)' : (isHigh ? gateColor : 'var(--border-main)')}
-              strokeWidth={selected ? 4 : 3}
-            />
+            <>
+              <circle
+                cx={nodeWidth + 8}
+                cy={nodeHeight * 0.5}
+                r={5}
+                fill="var(--bg-app)"
+              />
+              <circle
+                cx={nodeWidth + 8}
+                cy={nodeHeight * 0.5}
+                r={5}
+                fill="var(--bg-panel)"
+                stroke={selected ? 'var(--selection-color)' : (isHigh ? gateColor : 'var(--text-muted)')}
+                strokeWidth={selected ? 4 : 3}
+              />
+            </>
           )}
         </svg>
         
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none pr-3">
           <span 
-            className={`text-[10px] font-black tracking-[0.2em] uppercase transition-all duration-500
-              ${isHigh ? 'text-main' : 'text-dim/30'}
+            className={`text-[10px] font-black tracking-[0.2em] uppercase
+              ${isHigh ? 'text-main' : 'text-dim'}
             `}
             style={{ 
               transform: ['OR', 'NOR', 'XOR', 'XNOR'].includes(type) ? 'translateX(4px)' : 'none'

@@ -110,8 +110,8 @@ export function evaluateComponent(
     }
     case 'OUTPUT':
     case 'LED': {
-      const inputArr = Array.from(inputs.values());
-      outputs.set('display', resolve(inputArr[0]));
+      const displaySignal = inputs.get('in_0') ?? Array.from(inputs.values())[0];
+      outputs.set('display', resolve(displaySignal));
       break;
     }
     case 'CLOCK': {

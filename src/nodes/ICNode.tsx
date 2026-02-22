@@ -59,7 +59,7 @@ function ICNode({ data, selected }: NodeProps<CircuitNodeData>) {
           minWidth: '64px',
           height: `${nodeHeight}px`,
           borderColor: selected ? '#ffffff' : icColor,
-          backgroundColor: '#0a0d14',
+          backgroundColor: 'var(--bg-app)',
           borderStyle: 'solid',
         }}
       >
