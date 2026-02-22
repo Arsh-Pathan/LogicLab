@@ -39,10 +39,6 @@ interface UIState {
   showProjectManager: boolean;
   setShowProjectManager: (show: boolean) => void;
 
-  // Auth modal
-  showAuthModal: boolean;
-  setShowAuthModal: (show: boolean) => void;
-
   renameDialog: { visible: boolean; nodeId: string; currentLabel: string } | null;
   showRenameDialog: (nodeId: string, currentLabel: string) => void;
   hideRenameDialog: () => void;
@@ -112,10 +108,6 @@ export const useUIStore = create<UIState>((set) => ({
   // Project Manager
   showProjectManager: false,
   setShowProjectManager: (show) => set({ showProjectManager: show }),
-
-  // Auth Modal
-  showAuthModal: false,
-  setShowAuthModal: (show) => set({ showAuthModal: show }),
 
   // Rename dialog
   renameDialog: null,

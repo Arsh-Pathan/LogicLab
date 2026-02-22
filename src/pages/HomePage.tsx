@@ -17,11 +17,8 @@ import {
   Database,
   Unplug,
   Microchip,
-  Waves,
-  Fingerprint
+  Waves
 } from 'lucide-react';
-import { useUIStore } from '../store/uiStore';
-import { useAuthStore } from '../store/authStore';
 import Logo from '../components/common/Logo';
 import CircuitBackground from '../components/visuals/CircuitBackground';
 
@@ -30,8 +27,6 @@ gsap.registerPlugin(ScrollTrigger);
 export default function HomePage() {
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
-  const { isAuthenticated } = useAuthStore();
-  const setShowAuthModal = useUIStore((s) => s.setShowAuthModal);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -221,10 +216,10 @@ export default function HomePage() {
             </div>
             <div className="flex items-center gap-6">
                <button 
-                onClick={() => isAuthenticated ? navigate('/dashboard') : setShowAuthModal(true)}
+                onClick={() => navigate('/community')}
                 className="text-[10px] font-black uppercase tracking-widest text-dim hover:text-main transition-colors"
                >
-                 {isAuthenticated ? 'IDENTITTY_SYNCED' : 'Sync Terminal'}
+                 Institutional Directory
                </button>
                <button 
                 onClick={() => navigate('/sandbox')}
@@ -430,7 +425,7 @@ export default function HomePage() {
 
                        <div className="flex items-center gap-6 pt-10">
                           <div className="w-12 h-12 rounded-full border border-border-main flex items-center justify-center">
-                             <Fingerprint size={20} className="text-accent-blue" />
+                              <Binary size={20} className="text-accent-blue" />
                           </div>
                           <div className="flex flex-col gap-1">
                              <span className="text-[8px] font-black uppercase tracking-widest opacity-30 italic">Lattice Admin</span>

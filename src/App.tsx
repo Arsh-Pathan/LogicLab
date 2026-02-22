@@ -11,27 +11,18 @@ import NotFoundPage from './pages/NotFoundPage';
 import MobileWarning from './pages/MobileWarning';
 
 import MainLayout from './layouts/MainLayout';
-import AuthModal from './features/auth/components/AuthModal';
-import ProtectedRoute from './components/auth/ProtectedRoute';
 import LoadingScreen from './components/common/LoadingScreen';
 
 import { useKeyboard } from './hooks/useKeyboard';
 import { useUIStore } from './store/uiStore';
-import { useAuthStore } from './store/authStore';
 
 export default function App() {
   const theme = useUIStore((s: any) => s.theme);
-  const initialize = useAuthStore((s) => s.initialize);
   const [isLoading, setIsLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
 
   // Initialize keyboard shortcuts
   useKeyboard();
-
-  // Initialize auth
-  useEffect(() => {
-    initialize();
-  }, [initialize]);
 
   // Sync theme to root
   useEffect(() => {
@@ -50,9 +41,6 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      {/* Auth Portal */}
-      <AuthModal />
-
       {/* Institutional Loading Overlay */}
       {isLoading && (
         <LoadingScreen onComplete={() => setIsLoading(false)} />
@@ -69,19 +57,9 @@ export default function App() {
           <Route path="academy" element={<LearnPage />} />
           <Route path="community" element={<CommunityPage />} />
           
-          {/* Secure Simulation Ports */}
-          <Route path="sandbox" element={
-            <ProtectedRoute>
-              {isMobile ? <MobileWarning /> : <WorkspacePage />}
-            </ProtectedRoute>
-          } />
-          
-          {/* User Registry */}
-          <Route path="dashboard" element={
-            <ProtectedRoute>
-              <DashboardPage />
-            </ProtectedRoute>
-          } />
+          {/* Research Ports (Public) */}
+          <Route path="sandbox" element={isMobile ? <MobileWarning /> : <WorkspacePage />} />
+          <Route path="dashboard" element={<DashboardPage />} />
 
           {/* Catch-All / Error Ports */}
           <Route path="mobile-warning" element={<MobileWarning />} />

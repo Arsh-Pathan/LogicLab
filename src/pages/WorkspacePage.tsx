@@ -1,6 +1,6 @@
 import { ReactFlowProvider } from 'reactflow';
 import { useNavigate } from 'react-router-dom';
-import { Save, FolderOpen, Home, LogIn, LogOut, Globe, Package } from 'lucide-react';
+import { Save, FolderOpen, Home, Globe, Package } from 'lucide-react';
 
 import Canvas from '../features/workspace/components/Canvas';
 import Toolbar from '../features/workspace/components/Toolbar';
@@ -13,16 +13,12 @@ import TutorialOverlay from '../components/common/TutorialOverlay';
 import { useEffect } from 'react';
 
 import { useUIStore } from '../store/uiStore';
-import { useAuthStore } from '../store/authStore';
 
 export default function WorkspacePage() {
   const navigate = useNavigate();
   const showPropertiesPanel = useUIStore((s: any) => s.showPropertiesPanel);
   const setShowICBuilder = useUIStore((s: any) => s.setShowICBuilder);
   const setShowProjectManager = useUIStore((s) => s.setShowProjectManager);
-  const setShowAuthModal = useUIStore((s) => s.setShowAuthModal);
-
-  const { isAuthenticated, user, signOut } = useAuthStore();
   const selectedNodeIds = useUIStore((s: any) => s.selectedNodeIds);
   const setShowTutorial = useUIStore((s) => s.setShowTutorial);
 
@@ -77,29 +73,13 @@ export default function WorkspacePage() {
 
           <div className="flex-1" />
 
-          {/* Institutional Status */}
-          {isAuthenticated && user ? (
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3 px-4 py-1.5 border border-border-main rounded-sm bg-neutral-50 shadow-sm">
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-main truncate max-w-[120px]">{user.email}</span>
-              </div>
-              <button 
-                onClick={signOut} 
-                className="p-2 rounded-sm text-dim hover:text-main hover:bg-red-50 transition-all"
-                title="Institutional Sign Out"
-              >
-                <LogOut size={14} />
-              </button>
+          {/* Institutional Status (Anonymous Mode) */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 px-4 py-1.5 border border-border-main rounded-sm bg-neutral-50 shadow-sm">
+              <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+              <span className="text-[10px] font-black uppercase tracking-widest text-main truncate">Anonymous Protocol</span>
             </div>
-          ) : (
-            <button
-              onClick={() => setShowAuthModal(true)}
-              className="flex items-center gap-2 px-6 py-2 bg-main text-app rounded-sm hover:invert transition-all text-[10px] font-black uppercase tracking-[0.2em]"
-            >
-              <LogIn size={12} /> Laboratory Access
-            </button>
-          )}
+          </div>
         </div>
 
         {/* Main Research Workspace */}
