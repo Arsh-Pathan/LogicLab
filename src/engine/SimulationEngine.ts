@@ -447,7 +447,7 @@ export class SimulationEngine {
     } else if (node.type === 'IC') {
       newOutputs = this.evaluateIC(node);
     } else {
-      newOutputs = evaluateComponent(node.type, node.inputs);
+      newOutputs = evaluateComponent(node.type, node.inputs, node.properties);
     }
 
     let changed = false;
@@ -467,33 +467,50 @@ export class SimulationEngine {
     const def = node.properties.definition as any;
     if (!def) return new Map();
 
-    // Ensure sub-engine exists
+    // Ensure sub-engine exists — create it in frozen mode to prevent
+    // premature per-node/connection propagation while building the graph.
     if (!node.properties.subEngine) {
       const subEngine = new SimulationEngine();
-      // Load definition into sub-engine
-      def.nodes.forEach((n: any) => subEngine.addNode(n));
-      def.connections.forEach((c: any) => subEngine.addConnection(c));
+      subEngine.setLiveMode(false); // freeze while building
+
+      // Add all nodes first, then all connections
+      for (const n of def.nodes) {
+        // Deep-clone to avoid mutating the definition and to reset signal state
+        const cleanData = {
+          ...n,
+          inputs: n.inputs.map((p: any) => ({ ...p, signal: undefined })),
+          outputs: n.outputs.map((p: any) => ({ ...p, signal: undefined })),
+          properties: { ...n.properties, value: n.type === 'INPUT' ? 0 : n.properties?.value },
+        };
+        subEngine.addNode(cleanData);
+      }
+      for (const c of def.connections) {
+        subEngine.addConnection({ ...c });
+      }
+
+      subEngine.setLiveMode(true); // re-enable live mode
       node.properties.subEngine = subEngine;
     }
 
     const subEngine = node.properties.subEngine as SimulationEngine;
 
-    // Map parent inputs to sub-engine input nodes
-    def.inputPins.forEach((mapping: any) => {
+    // Map parent inputs to sub-engine INPUT nodes
+    for (const mapping of def.inputPins) {
       const parentSignal = node.inputs.get(mapping.pinId);
       subEngine.setInputValue(mapping.nodeId, (parentSignal as Signal) ?? 0);
-    });
+    }
 
-    // Force full recompute to ensure static graphs propagate correctly regardless of caching
+    // Force full recompute so every internal node is re-evaluated
     subEngine.recomputeAll();
 
-    // Map sub-engine output nodes to parent outputs
+    // Map sub-engine output nodes back to parent IC outputs
     const outputs = new Map<string, Signal>();
-    def.outputPins.forEach((mapping: any) => {
+    for (const mapping of def.outputPins) {
       const subNodeOutputs = subEngine.getNodeOutputs(mapping.nodeId);
+      // OUTPUT/LED nodes expose 'display'; INPUT-type outputs expose 'out'
       const signal = subNodeOutputs.get('display') ?? subNodeOutputs.get('out') ?? 0;
       outputs.set(mapping.pinId, signal as Signal);
-    });
+    }
 
     return outputs;
   }

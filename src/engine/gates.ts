@@ -98,7 +98,8 @@ export function evaluateDecoder(
 
 export function evaluateComponent(
   type: ComponentType,
-  inputs: Map<string, SignalState>
+  inputs: Map<string, SignalState>,
+  properties?: Record<string, unknown>
 ): Map<string, Signal> {
   const outputs = new Map<string, Signal>();
 
@@ -121,7 +122,6 @@ export function evaluateComponent(
     }
     case 'SEVEN_SEGMENT': {
       const inputArr = Array.from(inputs.values());
-      // For Seven Segment, we just pass the input signals to the outputs for display
       for (let i = 0; i < inputArr.length; i++) {
         outputs.set(`in_${i}`, resolve(inputArr[i]));
       }
@@ -147,13 +147,180 @@ export function evaluateComponent(
       const a = resolve(inputs.get('in_0'));
       const b = resolve(inputs.get('in_1'));
       const res = evaluateDecoder(a, b);
-      res.forEach((val, i) => outputs.set(`out_${i}`, val));
+      // Pin IDs must match createOutputPins: y0, y1, y2, y3
+      res.forEach((val, i) => outputs.set(`y${i}`, val));
       break;
     }
+
+    // ── BCD TO 7-SEGMENT DECODER ──────────────────────
+    // Inputs: D, C, B, A  →  Outputs: A, B, C, D, E, F, G
+    case 'BCD_TO_7SEG': {
+      const d = resolve(inputs.get('in_0'));
+      const c = resolve(inputs.get('in_1'));
+      const b = resolve(inputs.get('in_2'));
+      const a = resolve(inputs.get('in_3'));
+      const val = (d << 3) | (c << 2) | (b << 1) | a;
+
+      // Hexadecimal 7-segment active-high patterns for 0-F (A=MSB..G=LSB order in logic below is typical, but we map 0=A..6=G)
+      // Array stores [A, B, C, D, E, F, G] for each number
+      const patterns = [
+        [1,1,1,1,1,1,0], // 0
+        [0,1,1,0,0,0,0], // 1
+        [1,1,0,1,1,0,1], // 2
+        [1,1,1,1,0,0,1], // 3
+        [0,1,1,0,0,1,1], // 4
+        [1,0,1,1,0,1,1], // 5
+        [1,0,1,1,1,1,1], // 6
+        [1,1,1,0,0,0,0], // 7
+        [1,1,1,1,1,1,1], // 8
+        [1,1,1,1,0,1,1], // 9
+        [1,1,1,0,1,1,1], // A
+        [0,0,1,1,1,1,1], // b
+        [1,0,0,1,1,1,0], // C
+        [0,1,1,1,1,0,1], // d
+        [1,0,0,1,1,1,1], // E
+        [1,0,0,0,1,1,1], // F
+      ];
+      const pattern = patterns[val] || [0,0,0,0,0,0,0];
+      for (let i = 0; i < 7; i++) {
+        outputs.set(`out_${i}`, pattern[i] as Signal);
+      }
+      break;
+    }
+
+    // ── MUX 2:1 ──────────────────────────────────────
+    // Inputs: D0, D1, S  →  Output: Y
+    // Y = S ? D1 : D0
+    case 'MUX_2TO1': {
+      const d0 = resolve(inputs.get('in_0'));
+      const d1 = resolve(inputs.get('in_1'));
+      const s  = resolve(inputs.get('in_2'));
+      outputs.set('out', (s === 1 ? d1 : d0) as Signal);
+      break;
+    }
+
+    // ── MUX 4:1 ──────────────────────────────────────
+    // Inputs: D0, D1, D2, D3, S0, S1  →  Output: Y
+    case 'MUX_4TO1': {
+      const d0 = resolve(inputs.get('in_0'));
+      const d1 = resolve(inputs.get('in_1'));
+      const d2 = resolve(inputs.get('in_2'));
+      const d3 = resolve(inputs.get('in_3'));
+      const s0 = resolve(inputs.get('in_4'));
+      const s1 = resolve(inputs.get('in_5'));
+      const sel = (s1 << 1) | s0;
+      const muxData = [d0, d1, d2, d3];
+      outputs.set('out', muxData[sel] as Signal);
+      break;
+    }
+
+    // ── DEMUX 1:4 ─────────────────────────────────────
+    // Inputs: D, S0, S1  →  Outputs: Y0, Y1, Y2, Y3
+    case 'DEMUX_1TO4': {
+      const d  = resolve(inputs.get('in_0'));
+      const s0 = resolve(inputs.get('in_1'));
+      const s1 = resolve(inputs.get('in_2'));
+      const sel = (s1 << 1) | s0;
+      for (let i = 0; i < 4; i++) {
+        outputs.set(`y${i}`, (i === sel ? d : 0) as Signal);
+      }
+      break;
+    }
+
+    // ── SR LATCH (level-sensitive, active-high) ──────
+    // Inputs: S, R  →  Outputs: Q, Q̄
+    case 'SR_LATCH': {
+      const s = resolve(inputs.get('in_0'));
+      const r = resolve(inputs.get('in_1'));
+      const prevQ = (properties?.q as Signal) ?? 0;
+      let q: Signal = prevQ;
+      if (s === 1 && r === 0) q = 1;
+      else if (s === 0 && r === 1) q = 0;
+      else if (s === 1 && r === 1) q = 0; // invalid → reset
+      // s === 0 && r === 0: hold
+      if (properties) properties.q = q;
+      outputs.set('q', q);
+      outputs.set('qn', (q === 1 ? 0 : 1) as Signal);
+      break;
+    }
+
+    // ── D FLIP-FLOP (positive-edge-triggered) ────────
+    // Inputs: D, CLK  →  Outputs: Q, Q̄
+    case 'D_FLIPFLOP': {
+      const d   = resolve(inputs.get('in_0'));
+      const clk = resolve(inputs.get('in_1'));
+      const prevClk = (properties?.prevClk as Signal) ?? 0;
+      let q = (properties?.q as Signal) ?? 0;
+      let sampledD = (properties?.sampledD as Signal) ?? d;
+
+      // Master-slave emulation: sample inputs while clock is low to avoid zero-delay race conditions
+      if (clk === 0) {
+        sampledD = d;
+      }
+
+      // Rising edge: prevClk=0, clk=1
+      if (prevClk === 0 && clk === 1) {
+        q = sampledD;
+      }
+      if (properties) {
+        properties.prevClk = clk;
+        properties.sampledD = sampledD;
+        properties.q = q;
+      }
+      outputs.set('q', q);
+      outputs.set('qn', (q === 1 ? 0 : 1) as Signal);
+      break;
+    }
+
+    // ── JK FLIP-FLOP (positive-edge-triggered) ───────
+    // Inputs: J, K, CLK  →  Outputs: Q, Q̄
+    case 'JK_FLIPFLOP': {
+      const j   = resolve(inputs.get('in_0'));
+      const k   = resolve(inputs.get('in_1'));
+      const clk = resolve(inputs.get('in_2'));
+      const prevClk = (properties?.prevClk as Signal) ?? 0;
+      let q = (properties?.q as Signal) ?? 0;
+      let sampledJ = (properties?.sampledJ as Signal) ?? j;
+      let sampledK = (properties?.sampledK as Signal) ?? k;
+
+      // Master-slave emulation: sample inputs while clock is low
+      if (clk === 0) {
+        sampledJ = j;
+        sampledK = k;
+      }
+
+      // Rising edge trigger using sampled values
+      if (prevClk === 0 && clk === 1) {
+        if (sampledJ === 0 && sampledK === 0) { /* hold */ }
+        else if (sampledJ === 0 && sampledK === 1) q = 0;
+        else if (sampledJ === 1 && sampledK === 0) q = 1;
+        else q = (q === 1 ? 0 : 1) as Signal; // toggle
+      }
+      if (properties) {
+        properties.prevClk = clk;
+        properties.sampledJ = sampledJ;
+        properties.sampledK = sampledK;
+        properties.q = q;
+      }
+      outputs.set('q', q);
+      outputs.set('qn', (q === 1 ? 0 : 1) as Signal);
+      break;
+    }
+
+    // ── 1-BIT COMPARATOR ─────────────────────────────
+    // Inputs: A, B  →  Outputs: GT (A>B), EQ (A=B), LT (A<B)
+    case 'COMPARATOR': {
+      const a = resolve(inputs.get('in_0'));
+      const b = resolve(inputs.get('in_1'));
+      outputs.set('gt', (a > b ? 1 : 0) as Signal);
+      outputs.set('eq', (a === b ? 1 : 0) as Signal);
+      outputs.set('lt', (a < b ? 1 : 0) as Signal);
+      break;
+    }
+
     case 'IC': {
-      // IC logic is complex and handled by the SimulationEngine directly
-      // using sub-engines. We return an empty map here and let the engine
-      // override it.
+      // IC logic is handled by the SimulationEngine directly
+      // using sub-engines. We return an empty map here.
       break;
     }
     default: {
@@ -169,4 +336,3 @@ export function evaluateComponent(
 }
 
 export { GATE_EVALUATORS };
-

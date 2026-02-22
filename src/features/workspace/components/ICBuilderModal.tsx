@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import { X, Package, ArrowRight, Save } from 'lucide-react';
+import { X, Package, ArrowRight, Save, ChevronUp, ChevronDown } from 'lucide-react';
 import { useUIStore } from '../../../store/uiStore';
 import { useCircuitStore } from '../../../store/circuitStore';
 
@@ -12,9 +12,12 @@ export default function ICBuilderModal() {
   const createIC = useCircuitStore((s: any) => s.createIC);
 
   const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
   const [step, setStep] = useState<1 | 2>(1);
   const [inputs, setInputs] = useState<string[]>([]);
   const [outputs, setOutputs] = useState<string[]>([]);
+  const [inputLabels, setInputLabels] = useState<Record<string, string>>({});
+  const [outputLabels, setOutputLabels] = useState<Record<string, string>>({});
 
   const selectedNodes = useMemo(() => 
     nodes.filter((n: any) => selectedNodeIds.includes(n.id)),
@@ -27,16 +30,19 @@ export default function ICBuilderModal() {
   const handleSave = useCallback(() => {
     if (!name.trim()) return;
     
-    const inputMarkers = inputs;
-    const outputMarkers = outputs;
+    const inputMarkers = inputs.map(id => ({ id, label: inputLabels[id] || '' }));
+    const outputMarkers = outputs.map(id => ({ id, label: outputLabels[id] || '' }));
     
-    createIC(name, selectedNodeIds, inputMarkers, outputMarkers);
+    createIC(name, description, selectedNodeIds, inputMarkers, outputMarkers);
     setShowICBuilder(false);
     setName('');
+    setDescription('');
     setStep(1);
     setInputs([]);
     setOutputs([]);
-  }, [name, selectedNodeIds, inputs, outputs, createIC, setShowICBuilder]);
+    setInputLabels({});
+    setOutputLabels({});
+  }, [name, selectedNodeIds, inputs, outputs, inputLabels, outputLabels, createIC, setShowICBuilder]);
 
   const toggleInput = (id: string) => {
     setInputs(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
@@ -45,6 +51,58 @@ export default function ICBuilderModal() {
   const toggleOutput = (id: string) => {
     setOutputs(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   };
+
+  const moveInput = (id: string, dir: -1 | 1) => {
+    setInputs(prev => {
+      const idx = prev.indexOf(id);
+      if (idx < 0) return prev;
+      const next = [...prev];
+      if (dir === -1 && idx > 0) {
+        [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
+      } else if (dir === 1 && idx < next.length - 1) {
+        [next[idx + 1], next[idx]] = [next[idx], next[idx + 1]];
+      }
+      return next;
+    });
+  };
+
+  const moveOutput = (id: string, dir: -1 | 1) => {
+    setOutputs(prev => {
+      const idx = prev.indexOf(id);
+      if (idx < 0) return prev;
+      const next = [...prev];
+      if (dir === -1 && idx > 0) {
+        [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
+      } else if (dir === 1 && idx < next.length - 1) {
+        [next[idx + 1], next[idx]] = [next[idx], next[idx + 1]];
+      }
+      return next;
+    });
+  };
+
+  const sortedPotentialInputs = useMemo(() => {
+    const arr = potentialPorts.filter((n: any) => n.data.type === 'INPUT');
+    return arr.sort((a: any, b: any) => {
+      const aIdx = inputs.indexOf(a.id);
+      const bIdx = inputs.indexOf(b.id);
+      if (aIdx >= 0 && bIdx >= 0) return aIdx - bIdx;
+      if (aIdx >= 0) return -1;
+      if (bIdx >= 0) return 1;
+      return 0;
+    });
+  }, [potentialPorts, inputs]);
+
+  const sortedPotentialOutputs = useMemo(() => {
+    const arr = potentialPorts.filter((n: any) => n.data.type === 'OUTPUT' || n.data.type === 'LED');
+    return arr.sort((a: any, b: any) => {
+      const aIdx = outputs.indexOf(a.id);
+      const bIdx = outputs.indexOf(b.id);
+      if (aIdx >= 0 && bIdx >= 0) return aIdx - bIdx;
+      if (aIdx >= 0) return -1;
+      if (bIdx >= 0) return 1;
+      return 0;
+    });
+  }, [potentialPorts, outputs]);
 
   if (!showICBuilder) return null;
 
@@ -70,16 +128,29 @@ export default function ICBuilderModal() {
             </div>
           ) : step === 1 ? (
             <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">IC Name</label>
-                <input 
-                  type="text" 
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g., 4-Bit Adder"
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-blue-500 outline-none"
-                  autoFocus
-                />
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">IC Name</label>
+                  <input 
+                    type="text" 
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="e.g., 4-Bit Adder"
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-blue-500 outline-none"
+                    autoFocus
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">IC Subtitle (Optional)</label>
+                  <input 
+                    type="text" 
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="e.g., ALU Module"
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-blue-500 outline-none"
+                  />
+                </div>
               </div>
 
               <div>
@@ -115,19 +186,43 @@ export default function ICBuilderModal() {
                   <div>
                     <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Inputs</h4>
                     <div className="grid grid-cols-2 gap-2">
-                      {potentialPorts.filter((n: any) => n.data.type === 'INPUT').map((n: any) => (
-                        <button 
+                      {sortedPotentialInputs.map((n: any) => (
+                        <div 
                           key={n.id}
-                          onClick={() => toggleInput(n.id)}
-                          className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
+                          className={`flex items-start justify-between p-3 rounded-lg border transition-all ${
                             inputs.includes(n.id) 
                               ? 'bg-emerald-900/20 border-emerald-500 text-emerald-400' 
                               : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600'
                           }`}
                         >
-                          <span className="text-xs font-medium">{n.data.label}</span>
-                          <div className={`w-4 h-4 rounded-full border-2 ${inputs.includes(n.id) ? 'bg-emerald-500 border-emerald-500' : 'border-gray-600'}`} />
-                        </button>
+                          <div className="flex flex-col gap-2 w-full pr-4">
+                            <span 
+                              className="text-xs font-medium cursor-pointer" 
+                              onClick={() => toggleInput(n.id)}
+                            >
+                              {n.data.label}
+                            </span>
+                            {inputs.includes(n.id) && (
+                              <div className="flex flex-col gap-2">
+                                <input 
+                                  type="text"
+                                  placeholder="Custom Label..."
+                                  value={inputLabels[n.id] || ''}
+                                  onChange={(e) => setInputLabels(prev => ({ ...prev, [n.id]: e.target.value }))}
+                                  className="w-full bg-black/30 border border-emerald-500/30 rounded px-2 py-1 text-xs text-white outline-none focus:border-emerald-500 transition-colors"
+                                />
+                                <div className="flex gap-1 mt-1">
+                                  <button onClick={() => moveInput(n.id, -1)} disabled={inputs.indexOf(n.id) === 0} className="p-1 rounded bg-black/30 hover:bg-black/50 disabled:opacity-30 border border-emerald-500/30"><ChevronUp size={12}/></button>
+                                  <button onClick={() => moveInput(n.id, 1)} disabled={inputs.indexOf(n.id) === inputs.length - 1} className="p-1 rounded bg-black/30 hover:bg-black/50 disabled:opacity-30 border border-emerald-500/30"><ChevronDown size={12}/></button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          <div 
+                            className={`w-4 h-4 shrink-0 rounded-full border-2 cursor-pointer mt-0.5 ${inputs.includes(n.id) ? 'bg-emerald-500 border-emerald-500' : 'border-gray-600'}`}
+                            onClick={() => toggleInput(n.id)}
+                          />
+                        </div>
                       ))}
                       {potentialPorts.filter((n: any) => n.data.type === 'INPUT').length === 0 && (
                         <div className="col-span-2 text-center py-4 bg-gray-800/50 border border-dashed border-gray-700 rounded-lg text-xs text-gray-600">
@@ -141,19 +236,43 @@ export default function ICBuilderModal() {
                   <div>
                     <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Outputs</h4>
                     <div className="grid grid-cols-2 gap-2">
-                      {potentialPorts.filter((n: any) => n.data.type === 'OUTPUT' || n.data.type === 'LED').map((n: any) => (
-                        <button 
+                      {sortedPotentialOutputs.map((n: any) => (
+                        <div 
                           key={n.id}
-                          onClick={() => toggleOutput(n.id)}
-                          className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
+                          className={`flex items-start justify-between p-3 rounded-lg border transition-all ${
                             outputs.includes(n.id) 
                               ? 'bg-blue-900/20 border-blue-500 text-blue-400' 
                               : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600'
                           }`}
                         >
-                          <span className="text-xs font-medium">{n.data.label}</span>
-                          <div className={`w-4 h-4 rounded-full border-2 ${outputs.includes(n.id) ? 'bg-blue-500 border-blue-500' : 'border-gray-600'}`} />
-                        </button>
+                          <div className="flex flex-col gap-2 w-full pr-4">
+                            <span 
+                              className="text-xs font-medium cursor-pointer" 
+                              onClick={() => toggleOutput(n.id)}
+                            >
+                              {n.data.label}
+                            </span>
+                            {outputs.includes(n.id) && (
+                              <div className="flex flex-col gap-2">
+                                <input 
+                                  type="text"
+                                  placeholder="Custom Label..."
+                                  value={outputLabels[n.id] || ''}
+                                  onChange={(e) => setOutputLabels(prev => ({ ...prev, [n.id]: e.target.value }))}
+                                  className="w-full bg-black/30 border border-blue-500/30 rounded px-2 py-1 text-xs text-white outline-none focus:border-blue-500 transition-colors"
+                                />
+                                <div className="flex gap-1 mt-1">
+                                  <button onClick={() => moveOutput(n.id, -1)} disabled={outputs.indexOf(n.id) === 0} className="p-1 rounded bg-black/30 hover:bg-black/50 disabled:opacity-30 border border-blue-500/30"><ChevronUp size={12}/></button>
+                                  <button onClick={() => moveOutput(n.id, 1)} disabled={outputs.indexOf(n.id) === outputs.length - 1} className="p-1 rounded bg-black/30 hover:bg-black/50 disabled:opacity-30 border border-blue-500/30"><ChevronDown size={12}/></button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          <div 
+                            className={`w-4 h-4 shrink-0 rounded-full border-2 cursor-pointer mt-0.5 ${outputs.includes(n.id) ? 'bg-blue-500 border-blue-500' : 'border-gray-600'}`}
+                            onClick={() => toggleOutput(n.id)}
+                          />
+                        </div>
                       ))}
                       {potentialPorts.filter((n: any) => n.data.type === 'OUTPUT' || n.data.type === 'LED').length === 0 && (
                         <div className="col-span-2 text-center py-4 bg-gray-800/50 border border-dashed border-gray-700 rounded-lg text-xs text-gray-600">

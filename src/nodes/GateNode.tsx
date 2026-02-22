@@ -37,15 +37,18 @@ function GateNode({ data, selected }: NodeProps<CircuitNodeData>) {
   const outputSignal = outputs[0]?.signal;
   const isHigh = outputSignal === 1;
 
-  const nodeWidth = 60;
-  const nodeHeight = useMemo(() => Math.max(56, inputs.length * 18 + 12), [inputs.length]);
+  // Scale width and height with input count for a growing-gate feel
+  const nodeWidth = useMemo(() => Math.max(60, 52 + inputs.length * 6), [inputs.length]);
+  const nodeHeight = useMemo(() => Math.max(56, inputs.length * 22 + 12), [inputs.length]);
 
   return (
     <div
       style={{ transform: `rotate(${rotation}deg)` }}
-      className="relative flex items-center transition-all duration-75"
+      className="relative flex items-center"
     >
-      <div className="flex flex-col justify-center gap-4 py-2 absolute -left-[10px] h-full z-10">
+      <div className="flex flex-col justify-center gap-4 py-2 absolute -left-[10px] h-full z-10"
+        style={{ transition: 'height 0.2s ease' }}
+      >
         {inputs.map((pin) => (
           <Handle
             key={pin.id}
@@ -62,12 +65,19 @@ function GateNode({ data, selected }: NodeProps<CircuitNodeData>) {
         ))}
       </div>
 
-      <div className="relative mx-4" style={{ width: nodeWidth, height: nodeHeight }}>
+      <div className="relative mx-4"
+        style={{
+          width: nodeWidth,
+          height: nodeHeight,
+          transition: 'width 0.2s ease, height 0.2s ease',
+        }}
+      >
         <svg 
           viewBox={`0 0 ${nodeWidth} ${nodeHeight}`} 
           width={nodeWidth} 
           height={nodeHeight}
           className="overflow-visible"
+          style={{ transition: 'width 0.2s ease, height 0.2s ease' }}
         >
           <defs />
 
@@ -130,7 +140,9 @@ function GateNode({ data, selected }: NodeProps<CircuitNodeData>) {
         </div>
       </div>
 
-      <div className="flex flex-col justify-center absolute -right-[10px] h-full z-10">
+      <div className="flex flex-col justify-center absolute -right-[10px] h-full z-10"
+        style={{ transition: 'height 0.2s ease' }}
+      >
         {outputs.map((pin) => (
           <Handle
             key={pin.id}

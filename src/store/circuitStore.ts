@@ -25,6 +25,7 @@ import {
   SignalState,
   Rotation,
   DEFAULT_INPUT_COUNTS,
+  MAX_INPUT_COUNTS,
   ICDefinition,
   HistoryEntry,
   SimulationMode,
@@ -57,6 +58,56 @@ function createInputPins(type: ComponentType, count?: number): Pin[] {
       { id: 'in_2', label: 'Cin', type: 'input', signal: undefined, index: 2 },
     ];
   if (type === 'DECODER')
+    return [
+      { id: 'in_0', label: 'A', type: 'input', signal: undefined, index: 0 },
+      { id: 'in_1', label: 'B', type: 'input', signal: undefined, index: 1 },
+    ];
+  if (type === 'MUX_2TO1')
+    return [
+      { id: 'in_0', label: 'D0', type: 'input', signal: undefined, index: 0 },
+      { id: 'in_1', label: 'D1', type: 'input', signal: undefined, index: 1 },
+      { id: 'in_2', label: 'S', type: 'input', signal: undefined, index: 2 },
+    ];
+  if (type === 'MUX_4TO1')
+    return [
+      { id: 'in_0', label: 'D0', type: 'input', signal: undefined, index: 0 },
+      { id: 'in_1', label: 'D1', type: 'input', signal: undefined, index: 1 },
+      { id: 'in_2', label: 'D2', type: 'input', signal: undefined, index: 2 },
+      { id: 'in_3', label: 'D3', type: 'input', signal: undefined, index: 3 },
+      { id: 'in_4', label: 'S0', type: 'input', signal: undefined, index: 4 },
+      { id: 'in_5', label: 'S1', type: 'input', signal: undefined, index: 5 },
+    ];
+  if (type === 'DEMUX_1TO4')
+    return [
+      { id: 'in_0', label: 'D', type: 'input', signal: undefined, index: 0 },
+      { id: 'in_1', label: 'S0', type: 'input', signal: undefined, index: 1 },
+      { id: 'in_2', label: 'S1', type: 'input', signal: undefined, index: 2 },
+    ];
+  if (type === 'SR_LATCH')
+    return [
+      { id: 'in_0', label: 'S', type: 'input', signal: undefined, index: 0 },
+      { id: 'in_1', label: 'R', type: 'input', signal: undefined, index: 1 },
+    ];
+  if (type === 'D_FLIPFLOP')
+    return [
+      { id: 'in_0', label: 'D', type: 'input', signal: undefined, index: 0 },
+      { id: 'in_1', label: 'CLK', type: 'input', signal: undefined, index: 1 },
+    ];
+  if (type === 'JK_FLIPFLOP')
+    return [
+      { id: 'in_0', label: 'J', type: 'input', signal: undefined, index: 0 },
+      { id: 'in_1', label: 'K', type: 'input', signal: undefined, index: 1 },
+      { id: 'in_2', label: 'CLK', type: 'input', signal: undefined, index: 2 },
+    ];
+  if (type === 'BCD_TO_7SEG')
+    return [0, 1, 2, 3].map((i) => ({
+      id: `in_${i}`,
+      label: ['D', 'C', 'B', 'A'][i], 
+      type: 'input' as const,
+      signal: undefined as SignalState,
+      index: i,
+    }));
+  if (type === 'COMPARATOR')
     return [
       { id: 'in_0', label: 'A', type: 'input', signal: undefined, index: 0 },
       { id: 'in_1', label: 'B', type: 'input', signal: undefined, index: 1 },
@@ -106,6 +157,35 @@ function createOutputPins(type: ComponentType): Pin[] {
       signal: undefined as SignalState,
       index: i,
     }));
+  if (type === 'BCD_TO_7SEG')
+    return [0, 1, 2, 3, 4, 5, 6].map((i) => ({
+      id: `out_${i}`,
+      label: ['A', 'B', 'C', 'D', 'E', 'F', 'G'][i],
+      type: 'output' as const,
+      signal: undefined as SignalState,
+      index: i,
+    }));
+  if (type === 'MUX_2TO1' || type === 'MUX_4TO1')
+    return [{ id: 'out', label: 'Y', type: 'output', signal: undefined, index: 0 }];
+  if (type === 'DEMUX_1TO4')
+    return [0, 1, 2, 3].map((i) => ({
+      id: `y${i}`,
+      label: `Y${i}`,
+      type: 'output' as const,
+      signal: undefined as SignalState,
+      index: i,
+    }));
+  if (type === 'SR_LATCH' || type === 'D_FLIPFLOP' || type === 'JK_FLIPFLOP')
+    return [
+      { id: 'q', label: 'Q', type: 'output', signal: undefined, index: 0 },
+      { id: 'qn', label: 'Q\'', type: 'output', signal: undefined, index: 1 },
+    ];
+  if (type === 'COMPARATOR')
+    return [
+      { id: 'gt', label: 'A>B', type: 'output', signal: undefined, index: 0 },
+      { id: 'eq', label: 'A=B', type: 'output', signal: undefined, index: 1 },
+      { id: 'lt', label: 'A<B', type: 'output', signal: undefined, index: 2 },
+    ];
   if (type === 'SEVEN_SEGMENT')
     return [{ id: 'display', label: 'DISP', type: 'output', signal: undefined, index: 0 }];
   if (type === 'JUNCTION')
@@ -213,7 +293,7 @@ interface CircuitState {
   pasteClipboard: (offset: XYPosition) => void;
 
   // Custom ICs
-  createIC: (name: string, nodeIds: string[], inputMarkers: string[], outputMarkers: string[]) => ICDefinition | null;
+  createIC: (name: string, description: string, nodeIds: string[], inputMarkers: { id: string; label: string }[], outputMarkers: { id: string; label: string }[]) => ICDefinition | null;
   addCustomIC: (definition: ICDefinition) => void;
 
   // Project management
@@ -280,13 +360,57 @@ export const useCircuitStore = create<CircuitState>((set, get) => {
       const state = get();
       state.pushHistory();
 
+      let targetPinId = connection.targetHandle;
+
+      // ── Auto-add input terminal when all existing inputs are taken ──
+      const targetNode = state.nodes.find((n) => n.id === connection.target);
+      if (targetNode && isGateType(targetNode.data.type)) {
+        const gateType = targetNode.data.type as GateType;
+        const maxInputs = MAX_INPUT_COUNTS[gateType] ?? 16;
+
+        // Check if the target pin already has an existing connection
+        const pinAlreadyConnected = state.edges.some(
+          (e) => e.target === connection.target && e.targetHandle === targetPinId
+        );
+
+        if (pinAlreadyConnected && targetNode.data.inputs.length < maxInputs) {
+          // Also check if ALL existing input pins are occupied
+          const occupiedPins = new Set(
+            state.edges
+              .filter((e) => e.target === connection.target)
+              .map((e) => e.targetHandle)
+          );
+
+          const hasFreePinAlready = targetNode.data.inputs.some(
+            (pin) => !occupiedPins.has(pin.id)
+          );
+
+          if (hasFreePinAlready) {
+            // Route to the first free pin
+            const freePin = targetNode.data.inputs.find(
+              (pin) => !occupiedPins.has(pin.id)
+            )!;
+            targetPinId = freePin.id;
+          } else {
+            // All pins occupied → add a new one
+            state.addInputToGate(connection.target);
+            // Grab the updated node after mutation
+            const updatedNode = get().nodes.find((n) => n.id === connection.target);
+            if (updatedNode) {
+              const newPin = updatedNode.data.inputs[updatedNode.data.inputs.length - 1];
+              targetPinId = newPin.id;
+            }
+          }
+        }
+      }
+
       const edgeId = uuidv4();
       const engineConnection: Connection = {
         id: edgeId,
         sourceNodeId: connection.source,
         sourcePinId: connection.sourceHandle,
         targetNodeId: connection.target,
-        targetPinId: connection.targetHandle,
+        targetPinId,
       };
 
       state.engine.addConnection(engineConnection);
@@ -296,7 +420,7 @@ export const useCircuitStore = create<CircuitState>((set, get) => {
         source: connection.source,
         target: connection.target,
         sourceHandle: connection.sourceHandle,
-        targetHandle: connection.targetHandle,
+        targetHandle: targetPinId,
         type: 'wire',
       };
 
@@ -805,7 +929,7 @@ export const useCircuitStore = create<CircuitState>((set, get) => {
     // Custom ICs
     // --------------------------------------------------------
 
-    createIC: (name, nodeIds, inputMarkers, outputMarkers) => {
+    createIC: (name, description, nodeIds, inputMarkers, outputMarkers) => {
       const state = get();
       const idSet = new Set(nodeIds);
 
@@ -823,22 +947,22 @@ export const useCircuitStore = create<CircuitState>((set, get) => {
           targetPinId: e.targetHandle ?? '',
         }));
 
-      const inputPins = inputMarkers.map((nodeId, i) => ({
+      const inputPins = inputMarkers.map((marker, i) => ({
         pinId: `ic_in_${i}`,
-        nodeId,
-        label: `IN${i}`,
+        nodeId: marker.id,
+        label: marker.label || `IN${i}`,
       }));
 
-      const outputPins = outputMarkers.map((nodeId, i) => ({
+      const outputPins = outputMarkers.map((marker, i) => ({
         pinId: `ic_out_${i}`,
-        nodeId,
-        label: `OUT${i}`,
+        nodeId: marker.id,
+        label: marker.label || `OUT${i}`,
       }));
 
       const icDef: ICDefinition = {
         id: uuidv4(),
         name,
-        description: `Custom IC: ${name}`,
+        description: description || `Custom IC: ${name}`,
         nodes: icNodes,
         connections: icConnections,
         inputPins,
@@ -1022,6 +1146,14 @@ export function getNodeType(type: ComponentType): string {
     case 'HALF_ADDER':
     case 'FULL_ADDER':
     case 'DECODER':
+    case 'BCD_TO_7SEG':
+    case 'MUX_2TO1':
+    case 'MUX_4TO1':
+    case 'DEMUX_1TO4':
+    case 'SR_LATCH':
+    case 'D_FLIPFLOP':
+    case 'JK_FLIPFLOP':
+    case 'COMPARATOR':
       return 'ic';
     case 'IC':
       return 'ic';

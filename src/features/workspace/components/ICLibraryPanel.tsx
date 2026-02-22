@@ -7,6 +7,14 @@ const COMMON_ICS = [
   { id: 'common-half-adder', name: 'Half Adder', type: 'HALF_ADDER' },
   { id: 'common-full-adder', name: 'Full Adder', type: 'FULL_ADDER' },
   { id: 'common-decoder', name: 'Decoder', type: 'DECODER' },
+  { id: 'common-mux-2to1', name: '2:1 Multiplexer', type: 'MUX_2TO1' },
+  { id: 'common-mux-4to1', name: '4:1 Multiplexer', type: 'MUX_4TO1' },
+  { id: 'common-demux-1to4', name: '1:4 Demultiplexer', type: 'DEMUX_1TO4' },
+  { id: 'common-sr-latch', name: 'SR Latch', type: 'SR_LATCH' },
+  { id: 'common-d-flipflop', name: 'D Flip-Flop', type: 'D_FLIPFLOP' },
+  { id: 'common-jk-flipflop', name: 'JK Flip-Flop', type: 'JK_FLIPFLOP' },
+  { id: 'common-comparator', name: '1-Bit Comparator', type: 'COMPARATOR' },
+  { id: 'common-bcd-7seg', name: 'BCD to 7-Segment', type: 'BCD_TO_7SEG' },
 ];
 
 export default function ICLibraryPanel() {

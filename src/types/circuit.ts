@@ -30,6 +30,14 @@ export type ComponentType =
   | 'HALF_ADDER'
   | 'FULL_ADDER'
   | 'DECODER'
+  | 'BCD_TO_7SEG'
+  | 'MUX_2TO1'
+  | 'MUX_4TO1'
+  | 'DEMUX_1TO4'
+  | 'SR_LATCH'
+  | 'D_FLIPFLOP'
+  | 'JK_FLIPFLOP'
+  | 'COMPARATOR'
   | 'JUNCTION'
   | 'IC';
 
