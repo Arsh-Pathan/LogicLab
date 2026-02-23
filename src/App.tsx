@@ -59,6 +59,7 @@ export default function App() {
           
           {/* Research Ports (Public) */}
           <Route path="sandbox" element={isMobile ? <MobileWarning /> : <WorkspacePage />} />
+          <Route path="sandbox/:projectId" element={isMobile ? <MobileWarning /> : <WorkspacePage />} />
           <Route path="dashboard" element={<DashboardPage />} />
 
           {/* Catch-All / Error Ports */}

@@ -3,6 +3,7 @@
 // ============================================================
 
 import { useState, useCallback, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { X, Save, FolderOpen, Trash2, Calendar, FileJson, Loader2, AlertCircle, Plus } from 'lucide-react';
 import { useUIStore } from '../../../store/uiStore';
 import { useCircuitStore } from '../../../store/circuitStore';
@@ -13,6 +14,7 @@ import { SavedProject } from '../../../types/circuit';
 import { fetchUserProjects, saveProject, deleteProject as deleteProjectApi } from '../../../lib/projectApi';
 
 export default function ProjectManagerModal() {
+  const navigate = useNavigate();
   const showModal = useUIStore((s) => s.showProjectManager);
   const setShowModal = useUIStore((s) => s.setShowProjectManager);
 
@@ -65,6 +67,7 @@ export default function ProjectManagerModal() {
       if (saved) {
         setProjectId(saved.id);
         setProjectName(saved.name);
+        navigate(`/sandbox/${saved.id}`, { replace: true });
         await fetchProjects();
         setView('load');
       } else {
@@ -83,9 +86,10 @@ export default function ProjectManagerModal() {
       loadCircuit(result.nodes, result.edges, result.customICs);
       setProjectId(project.id);
       setProjectName(project.name);
+      navigate(`/sandbox/${project.id}`, { replace: true });
       setShowModal(false);
     }
-  }, [loadCircuit, setProjectId, setProjectName, setShowModal]);
+  }, [loadCircuit, setProjectId, setProjectName, setShowModal, navigate]);
 
   const handleDelete = useCallback(async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();

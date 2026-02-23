@@ -72,7 +72,7 @@ export default function DashboardPage() {
       loadCircuit(result.nodes, result.edges, result.customICs);
       setProjectId(project.id);
       setProjectName(project.name);
-      navigate('/sandbox');
+      navigate(`/sandbox/${project.id}`);
     }
   };
 

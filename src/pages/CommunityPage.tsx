@@ -78,7 +78,7 @@ export default function CommunityPage() {
       loadCircuit(result.nodes, result.edges, result.customICs);
       setProjectId(circuit.id || null);
       setProjectName(circuit.name);
-      navigate('/sandbox');
+      navigate(`/sandbox/${circuit.id}`);
     }
   };
 

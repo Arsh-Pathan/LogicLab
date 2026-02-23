@@ -1,5 +1,5 @@
 import { ReactFlowProvider } from 'reactflow';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Save, FolderOpen, Home, Globe, Package } from 'lucide-react';
 
 import Canvas from '../features/workspace/components/Canvas';
@@ -11,12 +11,19 @@ import PropertiesPanel from '../features/workspace/components/PropertiesPanel';
 import ICLibraryPanel from '../features/workspace/components/ICLibraryPanel';
 import ProjectManagerModal from '../features/projects/components/ProjectManagerModal';
 import TutorialOverlay from '../components/common/TutorialOverlay';
-import { useEffect, useCallback, useRef } from 'react';
+import ProjectNameDialog from '../components/common/ProjectNameDialog';
+import { useEffect, useCallback, useRef, useState } from 'react';
 
 import { useUIStore } from '../store/uiStore';
+import { useProjectStore } from '../store/projectStore';
+import { useCircuitStore } from '../store/circuitStore';
+import { fetchUserProjects } from '../lib/projectApi';
+import { importProject } from '../serialization/importProject';
 
 export default function WorkspacePage() {
   const navigate = useNavigate();
+  const { projectId: urlProjectId } = useParams<{ projectId?: string }>();
+
   const showPropertiesPanel = useUIStore((s: any) => s.showPropertiesPanel);
   const propertiesPanelWidth = useUIStore((s: any) => s.propertiesPanelWidth);
   const setPropertiesPanelWidth = useUIStore((s: any) => s.setPropertiesPanelWidth);
@@ -26,6 +33,50 @@ export default function WorkspacePage() {
   const setShowTutorial = useUIStore((s) => s.setShowTutorial);
   const showComponentPalette = useUIStore((s: any) => s.showComponentPalette);
   const toggleComponentPalette = useUIStore((s: any) => s.toggleComponentPalette);
+
+  const projectName = useProjectStore((s) => s.projectName);
+  const setProjectName = useProjectStore((s) => s.setProjectName);
+  const storeProjectId = useProjectStore((s) => s.projectId);
+  const setProjectId = useProjectStore((s) => s.setProjectId);
+
+  const loadCircuit = useCircuitStore((s: any) => s.loadCircuit);
+
+  // Show project name dialog when entering workspace for a NEW project only
+  const [showNameDialog, setShowNameDialog] = useState(false);
+  const projectLoadedRef = useRef(false);
+
+  // Auto-load project from URL parameter on mount
+  useEffect(() => {
+    if (!urlProjectId || projectLoadedRef.current) return;
+    
+    // If the store already has this project loaded, skip
+    if (storeProjectId === urlProjectId) {
+      projectLoadedRef.current = true;
+      return;
+    }
+
+    projectLoadedRef.current = true;
+
+    (async () => {
+      const projects = await fetchUserProjects();
+      const project = projects.find(p => p.id === urlProjectId);
+      if (project) {
+        const result = importProject(JSON.stringify(project.data));
+        if (result) {
+          loadCircuit(result.nodes, result.edges, result.customICs);
+          setProjectId(project.id);
+          setProjectName(project.name);
+        }
+      }
+    })();
+  }, [urlProjectId, storeProjectId, loadCircuit, setProjectId, setProjectName]);
+
+  // Show name dialog only when there's no project (no URL param, no store ID, default name)
+  useEffect(() => {
+    if (!urlProjectId && !storeProjectId && projectName === 'Untitled Project') {
+      setShowNameDialog(true);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const tutorialCompleted = localStorage.getItem('logiclab_tutorial_completed');
@@ -161,8 +212,17 @@ export default function WorkspacePage() {
 
         {/* System Onboarding */}
         <TutorialOverlay />
+
+        {/* Project Name Dialog — only for brand new projects */}
+        <ProjectNameDialog
+          open={showNameDialog}
+          onConfirm={(name) => {
+            setProjectName(name);
+            setShowNameDialog(false);
+          }}
+          onSkip={() => setShowNameDialog(false)}
+        />
       </div>
     </ReactFlowProvider>
   );
 }
-

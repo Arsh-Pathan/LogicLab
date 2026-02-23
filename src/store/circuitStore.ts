@@ -312,10 +312,21 @@ interface CircuitState {
 export const useCircuitStore = create<CircuitState>((set, get) => {
   const engine = new SimulationEngine();
 
+  // Debounced signal cache update — coalesces rapid engine
+  // notifications into a single React state update per frame.
+  let rafId: number | null = null;
+  const debouncedSignalUpdate = () => {
+    if (rafId !== null) return;
+    rafId = requestAnimationFrame(() => {
+      rafId = null;
+      const state = get();
+      state.updateSignalCache();
+    });
+  };
+
   // Subscribe to engine changes to update signal cache
   engine.subscribeAll(() => {
-    const state = get();
-    state.updateSignalCache();
+    debouncedSignalUpdate();
   });
 
   return {
@@ -703,15 +714,30 @@ export const useCircuitStore = create<CircuitState>((set, get) => {
         }
       }
 
-      // Also update the React Flow node data with current signals
-      set((prev) => ({
-        signalCache: newCache,
-        nodes: prev.nodes.map((n) => {
+      // Only create new node objects for nodes whose signals actually changed
+      set((prev) => {
+        let anyNodeChanged = false;
+        const newNodes = prev.nodes.map((n) => {
           const outputs = newCache.get(n.id);
           if (!outputs) return n;
 
           const inputs = state.engine.getNodeInputs(n.id);
 
+          // Check if any output signal actually differs
+          let changed = false;
+          for (const p of n.data.outputs) {
+            const newSig = outputs.get(p.id);
+            if (newSig !== undefined && newSig !== p.signal) { changed = true; break; }
+          }
+          if (!changed) {
+            for (const p of n.data.inputs) {
+              const newSig = inputs.get(p.id);
+              if (newSig !== undefined && newSig !== p.signal) { changed = true; break; }
+            }
+          }
+          if (!changed) return n;
+
+          anyNodeChanged = true;
           return {
             ...n,
             data: {
@@ -726,8 +752,13 @@ export const useCircuitStore = create<CircuitState>((set, get) => {
               })),
             },
           };
-        }),
-      }));
+        });
+
+        return {
+          signalCache: newCache,
+          nodes: anyNodeChanged ? newNodes : prev.nodes,
+        };
+      });
     },
 
     // --------------------------------------------------------
