@@ -8,8 +8,8 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import {
   X, Package, Save, Eye, ChevronUp, ChevronDown,
-  Move, GripVertical, ZoomIn, ZoomOut, Maximize2,
-  Tag, ArrowRight, Check, Circle
+  Move, ZoomIn, ZoomOut, Maximize2,
+  Tag, ArrowRight
 } from 'lucide-react';
 import { useUIStore } from '../../../store/uiStore';
 import { useCircuitStore } from '../../../store/circuitStore';
