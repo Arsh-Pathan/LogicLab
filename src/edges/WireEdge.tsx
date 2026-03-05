@@ -1,5 +1,5 @@
 // ============================================================
-// Wire Edge — Square/Orthogonal Connector Style
+// Wire Edge — Optimized for large circuits (no animations/glow)
 // ============================================================
 
 import { memo } from 'react';
@@ -18,15 +18,15 @@ function WireEdge({
   sourceHandleId,
 }: EdgeProps) {
   const simulationMode = useCircuitStore((s) => s.simulationMode);
-  
-  // Get live signal from properly reactive signalCache
-  const signalCache = useCircuitStore((s) => s.signalCache);
-  const nodeSignals = signalCache.get(source);
-  const signal = nodeSignals?.get(sourceHandleId ?? 'out') ?? 0;
+
+  // Read signal directly from engine via node data
+  const nodes = useCircuitStore((s) => s.nodes);
+  const sourceNode = nodes.find((n) => n.id === source);
+  const pin = sourceNode?.data.outputs.find((p) => p.id === (sourceHandleId ?? 'out'));
+  const signal = pin?.signal ?? 0;
   const isHigh = signal === 1;
   const isFrozen = simulationMode === 'frozen';
 
-  // Use getSmoothStepPath with radius for smooth curves
   const [edgePath] = getSmoothStepPath({
     sourceX,
     sourceY,
@@ -34,55 +34,34 @@ function WireEdge({
     targetY,
     sourcePosition,
     targetPosition,
-    borderRadius: 16, // Smoother corners
+    borderRadius: 8,
   });
 
-  const strokeColor = isFrozen ? '#f59e0b' : isHigh ? '#ffffff' : '#334155';
+  const strokeColor = isFrozen
+    ? '#f59e0b'
+    : isHigh
+      ? '#ffffff'
+      : '#334155';
 
   return (
     <>
-      {/* Background/Shadow Layer */}
+      {/* Base track */}
       <path
         d={edgePath}
         fill="none"
-        stroke="rgba(0,0,0,0.5)"
-        strokeWidth={selected ? 5 : 4}
-        strokeLinecap="round"
-      />
-      
-      {/* Base Idle Track */}
-      <path
-        d={edgePath}
-        fill="none"
-        stroke="#334155"
-        strokeWidth={selected ? 3 : 2.5}
+        stroke="#1e293b"
+        strokeWidth={selected ? 4 : 3}
         strokeLinecap="round"
       />
 
-      {/* Active White Flowing Wave */}
-      {isHigh && (
-        <path
-          d={edgePath}
-          fill="none"
-          stroke={strokeColor}
-          strokeWidth={selected ? 3 : 2.5}
-          strokeLinecap="round"
-          style={{
-            strokeDasharray: !isFrozen ? '8, 12' : 'none',
-            filter: 'drop-shadow(0 0 6px rgba(255,255,255,0.8))',
-          }}
-        >
-          {!isFrozen && (
-            <animate
-              attributeName="stroke-dashoffset"
-              from="20"
-              to="0"
-              dur="0.5s"
-              repeatCount="indefinite"
-            />
-          )}
-        </path>
-      )}
+      {/* Signal layer */}
+      <path
+        d={edgePath}
+        fill="none"
+        stroke={strokeColor}
+        strokeWidth={selected ? 3 : 2}
+        strokeLinecap="round"
+      />
 
       {/* Interaction layer */}
       <path

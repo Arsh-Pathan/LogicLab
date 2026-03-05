@@ -34,8 +34,8 @@ function ICNode({ data, selected }: NodeProps<CircuitNodeData>) {
     >
       {/* IC body with integrated handles and labels */}
       <div
-        className={`relative flex border-[1.5px] rounded-lg transition-all
-          ${selected ? 'border-white scale-[1.02] z-50 shadow-xl shadow-white/5' : ''}
+        className={`relative flex border-[1.5px] rounded-lg
+          ${selected ? 'border-white z-50' : ''}
         `}
         style={{
           minWidth: '100px',
@@ -56,12 +56,11 @@ function ICNode({ data, selected }: NodeProps<CircuitNodeData>) {
            <div className="text-[10px] sm:text-[11px] font-black text-main uppercase tracking-widest text-center" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere', lineHeight: 1.2 }}>
              {label.replace(/_/g, ' ')}
            </div>
-           
+
            {(() => {
              const fallbackDesc = `Custom IC: ${label}`;
              const customDesc = (data.properties?.definition as any)?.description;
-             
-             // If we have a custom subtitle distinct from the auto-generated one
+
              if (type === 'IC' && customDesc && customDesc !== fallbackDesc) {
                return (
                  <div className="text-[7.5px] text-dim opacity-80 font-bold mt-1 uppercase tracking-[0.2em] text-center" style={{ wordBreak: 'break-word', lineHeight: 1.2 }}>
@@ -69,11 +68,10 @@ function ICNode({ data, selected }: NodeProps<CircuitNodeData>) {
                  </div>
                );
              }
-             
-             // For standard ICs, show their type if label is truly different from the primitive
+
              const normalizedLabel = label.replace(/_/g, ' ').toUpperCase();
              const normalizedType = type.replace(/_/g, ' ').toUpperCase();
-             
+
              if (type !== 'IC' && normalizedLabel !== normalizedType) {
                return (
                  <div className="text-[7.5px] text-dim font-bold mt-1 uppercase tracking-[0.2em] text-center" style={{ wordBreak: 'break-word', lineHeight: 1.2 }}>
@@ -81,7 +79,7 @@ function ICNode({ data, selected }: NodeProps<CircuitNodeData>) {
                  </div>
                );
              }
-             
+
              return null;
            })()}
         </div>
@@ -94,7 +92,7 @@ function ICNode({ data, selected }: NodeProps<CircuitNodeData>) {
                 type="target"
                 position={Position.Left}
                 id={pin.id}
-                className="!w-[9px] !h-[9px] !rounded-full !border-[1.5px] transition-colors duration-75 pointer-events-auto"
+                className="!w-[9px] !h-[9px] !rounded-full !border-[1.5px] pointer-events-auto"
                 style={{
                   position: 'absolute',
                   top: '50%',
@@ -122,7 +120,7 @@ function ICNode({ data, selected }: NodeProps<CircuitNodeData>) {
                 type="source"
                 position={Position.Right}
                 id={pin.id}
-                className="!w-[9px] !h-[9px] !rounded-full !border-[1.5px] transition-colors duration-75 pointer-events-auto"
+                className="!w-[9px] !h-[9px] !rounded-full !border-[1.5px] pointer-events-auto"
                 style={{
                   position: 'absolute',
                   top: '50%',

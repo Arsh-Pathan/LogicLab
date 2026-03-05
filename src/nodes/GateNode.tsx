@@ -33,11 +33,10 @@ function GateNode({ data, selected }: NodeProps<CircuitNodeData>) {
   const gateColor = GATE_COLORS[type] ?? '#6b7280';
   const isInverted = ['NAND', 'NOR', 'NOT', 'XNOR'].includes(type);
   const isX = type === 'XOR' || type === 'XNOR';
-  
+
   const outputSignal = outputs[0]?.signal;
   const isHigh = outputSignal === 1;
 
-  // Scale width and height with input count for a growing-gate feel
   const nodeWidth = useMemo(() => Math.max(60, 52 + inputs.length * 6), [inputs.length]);
   const nodeHeight = useMemo(() => Math.max(56, inputs.length * 22 + 12), [inputs.length]);
 
@@ -46,9 +45,7 @@ function GateNode({ data, selected }: NodeProps<CircuitNodeData>) {
       style={{ transform: `rotate(${rotation}deg)` }}
       className="relative flex items-center"
     >
-      <div className="flex flex-col justify-center gap-4 py-2 absolute -left-[10px] h-full z-10"
-        style={{ transition: 'height 0.2s ease' }}
-      >
+      <div className="flex flex-col justify-center gap-4 py-2 absolute -left-[10px] h-full z-10">
         {inputs.map((pin) => (
           <Handle
             key={pin.id}
@@ -56,10 +53,10 @@ function GateNode({ data, selected }: NodeProps<CircuitNodeData>) {
             position={Position.Left}
             id={pin.id}
             className={`
-              !w-3 !h-3 !rounded-full !border-2 !static !transform-none transition-all duration-75
-              ${pin.signal === 1 
-                ? '!bg-accent-blue !border-white' 
-                : '!bg-app !border-muted hover:!border-main'}
+              !w-3 !h-3 !rounded-full !border-2 !static !transform-none
+              ${pin.signal === 1
+                ? '!bg-accent-blue !border-white'
+                : '!bg-app !border-muted'}
             `}
           />
         ))}
@@ -69,15 +66,13 @@ function GateNode({ data, selected }: NodeProps<CircuitNodeData>) {
         style={{
           width: nodeWidth,
           height: nodeHeight,
-          transition: 'width 0.2s ease, height 0.2s ease',
         }}
       >
-        <svg 
-          viewBox={`0 0 ${nodeWidth} ${nodeHeight}`} 
-          width={nodeWidth} 
+        <svg
+          viewBox={`0 0 ${nodeWidth} ${nodeHeight}`}
+          width={nodeWidth}
           height={nodeHeight}
           className="overflow-visible"
-          style={{ transition: 'width 0.2s ease, height 0.2s ease' }}
         >
           <defs />
 
@@ -95,7 +90,7 @@ function GateNode({ data, selected }: NodeProps<CircuitNodeData>) {
             strokeLinecap="round"
             strokeLinejoin="round"
           />
-          
+
           {isX && (
             <path
               d={`M -6,${nodeHeight*0.1} Q 2,${nodeHeight*0.5} -6,${nodeHeight*0.9}`}
@@ -125,13 +120,13 @@ function GateNode({ data, selected }: NodeProps<CircuitNodeData>) {
             </>
           )}
         </svg>
-        
+
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none pr-3">
-          <span 
+          <span
             className={`text-[10px] font-black tracking-[0.2em] uppercase
               ${isHigh ? 'text-main' : 'text-dim'}
             `}
-            style={{ 
+            style={{
               transform: ['OR', 'NOR', 'XOR', 'XNOR'].includes(type) ? 'translateX(4px)' : 'none'
             }}
           >
@@ -140,9 +135,7 @@ function GateNode({ data, selected }: NodeProps<CircuitNodeData>) {
         </div>
       </div>
 
-      <div className="flex flex-col justify-center absolute -right-[10px] h-full z-10"
-        style={{ transition: 'height 0.2s ease' }}
-      >
+      <div className="flex flex-col justify-center absolute -right-[10px] h-full z-10">
         {outputs.map((pin) => (
           <Handle
             key={pin.id}
@@ -150,9 +143,9 @@ function GateNode({ data, selected }: NodeProps<CircuitNodeData>) {
             position={Position.Right}
             id={pin.id}
             className={`
-              !w-4 !h-4 !rounded-full !border-2 !static !transform-none transition-all duration-75
-              ${pin.signal === 1 
-                ? '!bg-accent-blue !border-white' 
+              !w-4 !h-4 !rounded-full !border-2 !static !transform-none
+              ${pin.signal === 1
+                ? '!bg-accent-blue !border-white'
                 : '!bg-app !border-muted'}
             `}
           />

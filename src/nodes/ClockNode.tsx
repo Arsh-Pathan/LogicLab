@@ -1,4 +1,4 @@
-import React, { memo, useState, useEffect } from 'react';
+import React, { memo, useState } from 'react';
 import { Handle, Position, NodeProps } from 'reactflow';
 import { CircuitNodeData } from '../types/circuit';
 import { useCircuitStore } from '../store/circuitStore';
@@ -15,24 +15,6 @@ function ClockNode({ data, selected, id }: NodeProps<CircuitNodeData>) {
 
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(frequency.toString());
-
-  const [offset, setOffset] = useState(0);
-
-  useEffect(() => {
-    if (isFrozen) return;
-    let frameId: number;
-    
-    const animate = (time: number) => {
-      // Speed scales with frequency
-      const speed = frequency * 40; // Pixels per second
-      const currentOffset = ((time / 1000) * speed) % 40;
-      setOffset(currentOffset);
-      frameId = requestAnimationFrame(animate);
-    };
-    
-    frameId = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(frameId);
-  }, [frequency, isFrozen]);
 
   const handleStartEdit = (e: React.MouseEvent) => {
     if (!selected) return;
@@ -56,14 +38,14 @@ function ClockNode({ data, selected, id }: NodeProps<CircuitNodeData>) {
 
   return (
     <div
-      className="relative flex items-center group transition-all duration-75"
+      className="relative flex items-center group"
       style={{ transform: `rotate(${rotation}deg)` }}
     >
       <div
         className={`
           w-24 h-24 rounded-[2rem] border-4 flex flex-col items-center justify-between
-          transition-all duration-75 select-none relative overflow-hidden p-3
-          ${selected ? 'border-[var(--selection-color)] scale-[1.02]' : (isHigh && !isFrozen ? 'bg-red-500 border-red-400 shadow-[0_0_20px_rgba(239,68,68,0.5)]' : 'bg-app border-border-muted')}
+          select-none relative overflow-hidden p-3
+          ${selected ? 'border-[var(--selection-color)]' : (isHigh && !isFrozen ? 'bg-red-500 border-red-400' : 'bg-app border-border-muted')}
         `}
         style={{ transform: `rotate(-${rotation}deg)` }}
       >
@@ -72,33 +54,31 @@ function ClockNode({ data, selected, id }: NodeProps<CircuitNodeData>) {
           Clock
         </div>
 
-        {/* Wave Visualization */}
+        {/* Static wave indicator — no animation loop */}
         <div className="flex-1 w-full flex items-center justify-center py-1 px-1">
           <div className="w-full h-8 bg-black/40 rounded-1xl relative overflow-hidden flex items-center border border-white/5">
-            <svg 
-              width="100%" 
-              height="24" 
-              viewBox="0 0 100 24" 
+            <svg
+              width="100%"
+              height="24"
+              viewBox="0 0 100 24"
               preserveAspectRatio="none"
               className="relative z-10"
             >
               <path
-                d={`M ${-40 + offset},18 L ${-20 + offset},18 L ${-20 + offset},6 L ${offset},6 L ${offset},18 L ${20 + offset},18 L ${20 + offset},6 L ${40 + offset},6 L ${40 + offset},18 L ${60 + offset},18 L ${60 + offset},6 L ${80 + offset},6 L ${80 + offset},18 L ${100 + offset},18 L ${100 + offset},6 L ${120 + offset},6 L ${120 + offset},18`}
+                d="M 0,18 L 10,18 L 10,6 L 20,6 L 20,18 L 30,18 L 30,6 L 40,6 L 40,18 L 50,18 L 50,6 L 60,6 L 60,18 L 70,18 L 70,6 L 80,6 L 80,18 L 90,18 L 90,6 L 100,6"
                 fill="none"
                 stroke={isHigh && !isFrozen ? '#ffffff' : '#ef4444'}
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="transition-colors duration-100"
                 strokeWidth="2.5"
               />
             </svg>
-            
           </div>
         </div>
 
         {/* Info - Editable Frequency */}
-        <div 
-          className={`text-center transition-all ${selected ? 'cursor-text hover:bg-white/5 rounded-lg px-2' : ''}`}
+        <div
+          className={`text-center ${selected ? 'cursor-text hover:bg-white/5 rounded-lg px-2' : ''}`}
           onClick={handleStartEdit}
         >
           {isEditing ? (
@@ -125,9 +105,9 @@ function ClockNode({ data, selected, id }: NodeProps<CircuitNodeData>) {
           position={Position.Right}
           id="out"
           className={`
-            !w-4 !h-4 !rounded-full !border-2 !static !transform-none transition-all
-            ${isHigh 
-              ? '!bg-white !border-red-400' 
+            !w-4 !h-4 !rounded-full !border-2 !static !transform-none
+            ${isHigh
+              ? '!bg-white !border-red-400'
               : '!bg-gray-900 !border-white/20'}
           `}
         />

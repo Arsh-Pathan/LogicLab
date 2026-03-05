@@ -312,21 +312,11 @@ interface CircuitState {
 export const useCircuitStore = create<CircuitState>((set, get) => {
   const engine = new SimulationEngine();
 
-  // Debounced signal cache update — coalesces rapid engine
-  // notifications into a single React state update per frame.
-  let rafId: number | null = null;
-  const debouncedSignalUpdate = () => {
-    if (rafId !== null) return;
-    rafId = requestAnimationFrame(() => {
-      rafId = null;
-      const state = get();
-      state.updateSignalCache();
-    });
-  };
-
-  // Subscribe to engine changes to update signal cache
+  // Synchronous signal cache update — engine now batches notifications
+  // and fires once per propagation cycle, so we update immediately.
   engine.subscribeAll(() => {
-    debouncedSignalUpdate();
+    const state = get();
+    state.updateSignalCache();
   });
 
   return {
@@ -439,8 +429,7 @@ export const useCircuitStore = create<CircuitState>((set, get) => {
         edges: addEdge(newEdge, state.edges),
       }));
 
-      // Update signal cache after connection
-      setTimeout(() => get().updateSignalCache(), 0);
+      // Signal cache auto-updates via engine subscriber
     },
 
     // --------------------------------------------------------
@@ -705,21 +694,14 @@ export const useCircuitStore = create<CircuitState>((set, get) => {
 
     updateSignalCache: () => {
       const state = get();
-      const newCache = new Map<string, Map<string, SignalState>>();
-
-      for (const node of state.nodes) {
-        const outputs = state.engine.getNodeOutputs(node.id);
-        if (outputs.size > 0) {
-          newCache.set(node.id, outputs);
-        }
-      }
 
       // Only create new node objects for nodes whose signals actually changed
       set((prev) => {
         let anyNodeChanged = false;
         const newNodes = prev.nodes.map((n) => {
-          const outputs = newCache.get(n.id);
-          if (!outputs) return n;
+          // Direct reference to engine's internal maps — no copy overhead
+          const outputs = state.engine.getNodeOutputs(n.id);
+          if (!outputs || outputs.size === 0) return n;
 
           const inputs = state.engine.getNodeInputs(n.id);
 
@@ -755,7 +737,6 @@ export const useCircuitStore = create<CircuitState>((set, get) => {
         });
 
         return {
-          signalCache: newCache,
           nodes: anyNodeChanged ? newNodes : prev.nodes,
         };
       });
@@ -953,7 +934,6 @@ export const useCircuitStore = create<CircuitState>((set, get) => {
         edges: [...prev.edges, ...newEdges],
       }));
 
-      setTimeout(() => get().updateSignalCache(), 0);
     },
 
     // --------------------------------------------------------
@@ -1066,7 +1046,6 @@ export const useCircuitStore = create<CircuitState>((set, get) => {
         historyIndex: -1,
       });
 
-      setTimeout(() => get().updateSignalCache(), 0);
     },
 
     // --------------------------------------------------------
@@ -1153,7 +1132,6 @@ export const useCircuitStore = create<CircuitState>((set, get) => {
         edges: [...prev.edges.filter((e) => e.id !== edgeId), edgeA, edgeB],
       }));
 
-      setTimeout(() => get().updateSignalCache(), 0);
     },
   };
 });

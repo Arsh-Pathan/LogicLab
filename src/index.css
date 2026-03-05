@@ -166,63 +166,22 @@ p {
          focus:border-main transition-all outline-none text-2xl lowercase font-medium tracking-tight;
 }
 
-/* Keyframes */
+/* Keyframes — kept minimal for non-circuit UI elements */
 @keyframes shimmer {
   0% { transform: translateX(-100%); }
   100% { transform: translateX(100%); }
-}
-
-@keyframes fast-flow {
-  0% { stroke-dashoffset: 200; }
-  100% { stroke-dashoffset: 0; }
-}
-
-@keyframes bounce-subtle {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
-}
-
-@keyframes float-subtle {
-  0%, 100% { transform: translateY(0) rotate(0); }
-  50% { transform: translateY(-10px) rotate(1deg); }
 }
 
 .animate-shimmer {
   animation: shimmer 2s infinite;
 }
 
-.animate-fast-flow {
-  animation: fast-flow 1.5s linear infinite;
-}
-
-.animate-bounce-subtle {
-  animation: bounce-subtle 3s ease-in-out infinite;
-}
-
-.animate-float-subtle {
-  animation: float-subtle 6s ease-in-out infinite;
-}
-
 .logic-wire {
-  @apply transition-all duration-700;
   stroke-dasharray: 4, 12;
-}
-
-.glow-wire {
-  filter: drop-shadow(0 0 8px var(--accent-blue));
 }
 
 .perspective-2000 {
   perspective: 2000px;
-}
-
-.shadow-glow {
-  box-shadow: 0 0 20px -5px var(--accent-blue);
-}
-
-.parallax-wire {
-  @apply transition-transform duration-1000 ease-out;
-  pointer-events: none;
 }
 
 .research-text {

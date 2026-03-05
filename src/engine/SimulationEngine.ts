@@ -33,6 +33,9 @@ export class SimulationEngine {
   private nodes: Map<string, InternalNode> = new Map();
   private connections: Connection[] = [];
 
+  // Indexed connection lookups for O(1) per-pin access
+  private connectionsByTarget: Map<string, Connection[]> = new Map();
+
   private adjacency: AdjacencyList = new Map();
   private evaluationOrder: string[] = [];
   private graphDirty: boolean = true;
@@ -49,10 +52,7 @@ export class SimulationEngine {
   private evaluationCount: number = 0;
   private lastEvaluationTime: number = 0;
 
-  private maxPropagationDepth: number = 1000;
-
-  private propagationScheduled: boolean = false;
-  private propagationQueue: Set<string> = new Set();
+  private maxPropagationDepth: number = 2000;
 
   constructor() {
     this.clockScheduler = new ClockScheduler((nodeId, value) => {
@@ -98,6 +98,7 @@ export class SimulationEngine {
     this.connections = this.connections.filter(
       (c) => c.sourceNodeId !== nodeId && c.targetNodeId !== nodeId
     );
+    this.rebuildConnectionIndex();
 
     if (node.type === 'CLOCK') {
       this.clockScheduler.removeClock(nodeId);
@@ -108,7 +109,7 @@ export class SimulationEngine {
     this.graphDirty = true;
 
     if (this.mode === 'live') {
-      this.scheduleRecompute();
+      this.evaluate();
     }
   }
 
@@ -149,6 +150,7 @@ export class SimulationEngine {
     this.connections = this.connections.filter(
       (c) => !(c.targetNodeId === nodeId && c.targetPinId === pinId)
     );
+    this.rebuildConnectionIndex();
 
     node.inputs.delete(pinId);
     node.inputPinIds = node.inputPinIds.filter((id) => id !== pinId);
@@ -178,11 +180,12 @@ export class SimulationEngine {
     if (exists) return;
 
     this.connections.push(connection);
+    this.addToConnectionIndex(connection);
     this.graphDirty = true;
 
     if (this.mode === 'live') {
       this.propagateConnection(connection);
-      this.queuePropagation(connection.targetNodeId);
+      this.propagateFromNodeSync(connection.targetNodeId);
     } else {
       this.pendingPropagations.add(connection.targetNodeId);
     }
@@ -194,6 +197,7 @@ export class SimulationEngine {
 
     const connection = this.connections[connIndex];
     this.connections.splice(connIndex, 1);
+    this.rebuildConnectionIndex();
     this.graphDirty = true;
 
     const targetNode = this.nodes.get(connection.targetNodeId);
@@ -208,7 +212,7 @@ export class SimulationEngine {
       }
 
       if (this.mode === 'live') {
-        this.queuePropagation(connection.targetNodeId);
+        this.propagateFromNodeSync(connection.targetNodeId);
       } else {
         this.pendingPropagations.add(connection.targetNodeId);
       }
@@ -220,11 +224,12 @@ export class SimulationEngine {
     if (!node || node.type !== 'INPUT') return;
 
     node.properties.value = value;
+    const oldValue = node.outputs.get('out');
     node.outputs.set('out', value);
 
     if (this.mode === 'live') {
-      this.notifySubscribers(nodeId, 'out', node.outputs.get('out'), value);
-      this.propagateFromNode(nodeId);
+      this.notifySubscribers(nodeId, 'out', oldValue, value);
+      this.propagateFromNodeSync(nodeId);
     } else {
       this.pendingPropagations.add(nodeId);
     }
@@ -233,13 +238,13 @@ export class SimulationEngine {
   getNodeOutputs(nodeId: string): Map<string, SignalState> {
     const node = this.nodes.get(nodeId);
     if (!node) return new Map();
-    return new Map(node.outputs);
+    return node.outputs;
   }
 
   getNodeInputs(nodeId: string): Map<string, SignalState> {
     const node = this.nodes.get(nodeId);
     if (!node) return new Map();
-    return new Map(node.inputs);
+    return node.inputs;
   }
 
   evaluate(): void {
@@ -249,7 +254,7 @@ export class SimulationEngine {
 
     let changed = true;
     let passes = 0;
-    const MAX_PASSES = 50; // Allow up to 50 passes to settle asynchronous/feedback logic
+    const MAX_PASSES = 50;
 
     while (changed && passes < MAX_PASSES) {
       changed = false;
@@ -267,6 +272,9 @@ export class SimulationEngine {
 
     this.evaluationCount++;
     this.lastEvaluationTime = performance.now() - startTime;
+
+    // Notify once after full evaluation
+    this.notifyGlobalSubscribersOnce();
   }
 
   step(): string | null {
@@ -295,36 +303,30 @@ export class SimulationEngine {
         node.properties.value = 0;
         node.outputs.set('out', 0);
       }
+      // Reset IC sub-engines
+      if (node.properties.subEngine) {
+        (node.properties.subEngine as SimulationEngine).dispose();
+        node.properties.subEngine = undefined;
+      }
     }
 
     this.clockScheduler.reset();
     this.pendingPropagations.clear();
-    this.propagationQueue.clear();
-    this.propagationScheduled = false;
 
-    for (const [nodeId] of this.nodes) {
-      this.notifyGlobalSubscribers({
-        nodeId,
-        pinId: '',
-        previousSignal: undefined,
-        newSignal: undefined,
-        timestamp: Date.now(),
-      });
-    }
+    this.notifyGlobalSubscribersOnce();
   }
 
   clear(): void {
     this.clockScheduler.dispose();
     this.nodes.clear();
     this.connections = [];
+    this.connectionsByTarget = new Map();
     this.adjacency = new Map();
     this.evaluationOrder = [];
     this.graphDirty = true;
     this.evaluationCount = 0;
     this.lastEvaluationTime = 0;
     this.pendingPropagations = new Set();
-    this.propagationQueue = new Set();
-    this.propagationScheduled = false;
     this.subscribers.clear();
     // note: globalSubscribers are preserved so the store subscription stays active
 
@@ -377,8 +379,8 @@ export class SimulationEngine {
       return;
     }
 
-    this.propagationQueue.add(nodeId);
-    this.schedulePropagation();
+    // Synchronous propagation - zero delay
+    this.propagateFromNodeSync(nodeId);
   }
 
   subscribeAll(callback: EngineSubscriber): () => void {
@@ -400,17 +402,46 @@ export class SimulationEngine {
 
   dispose(): void {
     this.clockScheduler.dispose();
+    // Dispose IC sub-engines
+    for (const [, node] of this.nodes) {
+      if (node.properties.subEngine) {
+        (node.properties.subEngine as SimulationEngine).dispose();
+      }
+    }
     this.nodes.clear();
     this.connections = [];
+    this.connectionsByTarget = new Map();
     this.subscribers.clear();
     this.globalSubscribers.clear();
     this.pendingPropagations.clear();
-    this.propagationQueue.clear();
+  }
 
-    if (this.propagationScheduled) {
-      this.propagationScheduled = false;
+  // ---- Connection Index Management ----
+
+  private rebuildConnectionIndex(): void {
+    this.connectionsByTarget = new Map();
+    for (const conn of this.connections) {
+      const key = conn.targetNodeId;
+      let list = this.connectionsByTarget.get(key);
+      if (!list) {
+        list = [];
+        this.connectionsByTarget.set(key, list);
+      }
+      list.push(conn);
     }
   }
+
+  private addToConnectionIndex(conn: Connection): void {
+    const key = conn.targetNodeId;
+    let list = this.connectionsByTarget.get(key);
+    if (!list) {
+      list = [];
+      this.connectionsByTarget.set(key, list);
+    }
+    list.push(conn);
+  }
+
+  // ---- Graph Rebuild ----
 
   private rebuildGraphIfDirty(): void {
     if (!this.graphDirty) return;
@@ -429,8 +460,13 @@ export class SimulationEngine {
       this.evaluationOrder = result.order;
     }
 
+    // Rebuild connection index when graph changes
+    this.rebuildConnectionIndex();
+
     this.graphDirty = false;
   }
+
+  // ---- Node Evaluation ----
 
   private evaluateNode(nodeId: string): boolean {
     const node = this.nodes.get(nodeId);
@@ -456,7 +492,6 @@ export class SimulationEngine {
       if (oldValue !== newValue) {
         changed = true;
         node.outputs.set(pinId, newValue);
-        this.notifySubscribers(nodeId, pinId, oldValue, newValue);
       }
     }
 
@@ -467,15 +502,12 @@ export class SimulationEngine {
     const def = node.properties.definition as any;
     if (!def) return new Map();
 
-    // Ensure sub-engine exists — create it in frozen mode to prevent
-    // premature per-node/connection propagation while building the graph.
+    // Ensure sub-engine exists — create it once and reuse
     if (!node.properties.subEngine) {
       const subEngine = new SimulationEngine();
       subEngine.setLiveMode(false); // freeze while building
 
-      // Add all nodes first, then all connections
       for (const n of def.nodes) {
-        // Deep-clone to avoid mutating the definition and to reset signal state
         const cleanData = {
           ...n,
           inputs: n.inputs.map((p: any) => ({ ...p, signal: undefined })),
@@ -488,34 +520,74 @@ export class SimulationEngine {
         subEngine.addConnection({ ...c });
       }
 
-      subEngine.setLiveMode(true); // re-enable live mode
+      // Build the graph once (don't enable live mode to avoid unnecessary overhead)
+      subEngine.rebuildGraphIfDirty();
       node.properties.subEngine = subEngine;
     }
 
     const subEngine = node.properties.subEngine as SimulationEngine;
 
     // Map parent inputs to sub-engine INPUT nodes
+    let inputChanged = false;
     for (const mapping of def.inputPins) {
       const parentSignal = node.inputs.get(mapping.pinId);
-      subEngine.setInputValue(mapping.nodeId, (parentSignal as Signal) ?? 0);
+      const subNode = subEngine.nodes.get(mapping.nodeId);
+      if (subNode) {
+        const newVal = (parentSignal as Signal) ?? 0;
+        const oldVal = subNode.outputs.get('out');
+        if (oldVal !== newVal) {
+          subNode.properties.value = newVal;
+          subNode.outputs.set('out', newVal);
+          inputChanged = true;
+        }
+      }
     }
 
-    // Force full recompute so every internal node is re-evaluated
-    subEngine.recomputeAll();
+    // Only recompute if inputs actually changed
+    if (inputChanged) {
+      subEngine.graphDirty = true;
+      subEngine.evaluateAll();
+    }
 
     // Map sub-engine output nodes back to parent IC outputs
     const outputs = new Map<string, Signal>();
     for (const mapping of def.outputPins) {
-      const subNodeOutputs = subEngine.getNodeOutputs(mapping.nodeId);
-      // OUTPUT/LED nodes expose 'display'; INPUT-type outputs expose 'out'
-      const signal = subNodeOutputs.get('display') ?? subNodeOutputs.get('out') ?? 0;
-      outputs.set(mapping.pinId, signal as Signal);
+      const subNode = subEngine.nodes.get(mapping.nodeId);
+      if (subNode) {
+        const signal = subNode.outputs.get('display') ?? subNode.outputs.get('out') ?? 0;
+        outputs.set(mapping.pinId, signal as Signal);
+      }
     }
 
     return outputs;
   }
 
+  /**
+   * Lightweight evaluate that skips timing/counting overhead.
+   * Used by IC sub-engines for fast inner evaluation.
+   */
+  private evaluateAll(): void {
+    this.rebuildGraphIfDirty();
 
+    let changed = true;
+    let passes = 0;
+    const MAX_PASSES = 50;
+
+    while (changed && passes < MAX_PASSES) {
+      changed = false;
+      passes++;
+      for (const nodeId of this.evaluationOrder) {
+        if (this.evaluateNode(nodeId)) {
+          changed = true;
+        }
+      }
+    }
+  }
+
+  /**
+   * Collect input signals using indexed connection lookup — O(connections_to_this_node)
+   * instead of O(all_connections).
+   */
   private collectInputSignals(node: InternalNode): void {
     if (node.type === 'INPUT') {
       node.inputs.set('value', (node.properties.value as Signal) ?? 0);
@@ -527,13 +599,16 @@ export class SimulationEngine {
       return;
     }
 
+    // Clear all inputs
     for (const pinId of node.inputPinIds) {
       node.inputs.set(pinId, undefined);
     }
 
-    for (const conn of this.connections) {
-      if (conn.targetNodeId !== node.id) continue;
+    // Use indexed lookup instead of scanning all connections
+    const conns = this.connectionsByTarget.get(node.id);
+    if (!conns) return;
 
+    for (const conn of conns) {
       const sourceNode = this.nodes.get(conn.sourceNodeId);
       if (!sourceNode) continue;
 
@@ -562,9 +637,28 @@ export class SimulationEngine {
     }
   }
 
-  private propagateFromNode(nodeId: string): void {
+  /**
+   * Synchronous propagation — zero delay, evaluates the full downstream
+   * subgraph immediately.
+   */
+  private propagateFromNodeSync(nodeId: string): void {
     this.rebuildGraphIfDirty();
-    this.recomputeSubgraph(nodeId);
+
+    const downstream = findDownstream([nodeId], this.adjacency);
+    downstream.add(nodeId);
+    const subOrder = sortSubset(downstream, this.evaluationOrder);
+
+    let iterations = 0;
+    for (const id of subOrder) {
+      if (iterations++ > this.maxPropagationDepth) {
+        console.warn('Max propagation depth reached');
+        break;
+      }
+      this.evaluateNode(id);
+    }
+
+    // Single notification after all propagation is done
+    this.notifyGlobalSubscribersOnce();
   }
 
   private handleClockTick(nodeId: string, value: 0 | 1): void {
@@ -573,51 +667,32 @@ export class SimulationEngine {
 
     node.properties.value = value;
     node.outputs.set('out', value);
-    this.notifySubscribers(nodeId, 'out', value === 0 ? 1 : 0, value);
 
     if (this.mode === 'live') {
-      this.propagateFromNode(nodeId);
+      this.propagateFromNodeSync(nodeId);
     }
   }
 
-  private schedulePropagation(): void {
-    if (this.propagationScheduled) return;
-    
-    this.propagationScheduled = true;
-
-    try {
-      const nodes = Array.from(this.propagationQueue);
-      this.propagationQueue.clear();
-
-      if (nodes.length === 0) {
-        this.propagationScheduled = false;
-        return;
+  /**
+   * Batch notification — fires a single global event so the store
+   * only updates React state once per propagation cycle.
+   */
+  private notifyGlobalSubscribersOnce(): void {
+    if (this.globalSubscribers.size === 0) return;
+    const event: PropagationEvent = {
+      nodeId: '',
+      pinId: '',
+      previousSignal: undefined,
+      newSignal: undefined,
+      timestamp: Date.now(),
+    };
+    for (const cb of this.globalSubscribers) {
+      try {
+        cb(event);
+      } catch (e) {
+        console.error('Global subscriber error:', e);
       }
-
-      this.rebuildGraphIfDirty();
-
-      const allDownstream = findDownstream(nodes, this.adjacency);
-      for (const n of nodes) allDownstream.add(n);
-
-      const subOrder = sortSubset(allDownstream, this.evaluationOrder);
-
-      let iterations = 0;
-      for (const id of subOrder) {
-        if (iterations++ > this.maxPropagationDepth) {
-          console.warn('Max propagation depth reached');
-          break;
-        }
-        this.evaluateNode(id);
-      }
-    } finally {
-      this.propagationScheduled = false;
     }
-  }
-
-  private scheduleRecompute(): void {
-    queueMicrotask(() => {
-      this.evaluate();
-    });
   }
 
   private notifySubscribers(
@@ -642,18 +717,6 @@ export class SimulationEngine {
         } catch (e) {
           console.error('Subscriber error:', e);
         }
-      }
-    }
-
-    this.notifyGlobalSubscribers(event);
-  }
-
-  private notifyGlobalSubscribers(event: PropagationEvent): void {
-    for (const cb of this.globalSubscribers) {
-      try {
-        cb(event);
-      } catch (e) {
-        console.error('Global subscriber error:', e);
       }
     }
   }

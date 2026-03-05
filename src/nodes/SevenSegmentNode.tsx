@@ -13,7 +13,7 @@ const SEGMENTS = [
 ];
 
 function SevenSegmentNode({ data, selected }: NodeProps<CircuitNodeData>) {
-  const {inputs, rotation } = data;
+  const { inputs, rotation } = data;
 
   const segmentSignals = useMemo(() => {
     return inputs.map((p) => (p.signal === 1));
@@ -22,9 +22,9 @@ function SevenSegmentNode({ data, selected }: NodeProps<CircuitNodeData>) {
   return (
     <div
       className={`
-        relative flex items-center p-2 rounded-3xl border-2 transition-all gap-4
-        ${selected 
-          ? 'bg-panel border-[var(--selection-color)] shadow-xl' 
+        relative flex items-center p-2 rounded-3xl border-2 gap-4
+        ${selected
+          ? 'bg-panel border-[var(--selection-color)]'
           : 'bg-card border-border-main'}
       `}
       style={{ transform: `rotate(${rotation}deg)` }}
@@ -37,7 +37,7 @@ function SevenSegmentNode({ data, selected }: NodeProps<CircuitNodeData>) {
               type="target"
               position={Position.Left}
               id={pin.id}
-              className="!w-3 !h-3 !rounded-full !border-2 transition-colors !static !transform-none"
+              className="!w-3 !h-3 !rounded-full !border-2 !static !transform-none"
               style={{
                 backgroundColor: pin.signal === 1 ? '#22c55e' : 'var(--bg-app)',
                 borderColor: pin.signal === 1 ? '#22c55e' : 'var(--border-muted)',
@@ -52,21 +52,21 @@ function SevenSegmentNode({ data, selected }: NodeProps<CircuitNodeData>) {
 
       <div
         className={`
-          relative bg-[#02040a] rounded-2xl p-6 flex flex-col items-center justify-center min-w-[110px] transition-all
+          relative bg-[#02040a] rounded-2xl p-6 flex flex-col items-center justify-center min-w-[110px]
           border-[3px] shadow-inner
           ${selected ? 'border-[var(--selection-color)]/50' : 'border-white/10'}
         `}
       >
-        <div className="absolute inset-2 bg-black/40 rounded-xl border border-white/5 pointer-events-none shadow-2xl" />
-        
+        <div className="absolute inset-2 bg-black/40 rounded-xl border border-white/5 pointer-events-none" />
+
         <div className="absolute top-2 left-2 w-1 h-1 rounded-full bg-white/10" />
         <div className="absolute top-2 right-2 w-1 h-1 rounded-full bg-white/10" />
         <div className="absolute bottom-2 left-2 w-1 h-1 rounded-full bg-white/10" />
         <div className="absolute bottom-2 right-2 w-1 h-1 rounded-full bg-white/10" />
 
-        <svg 
-          width="54" 
-          height="74" 
+        <svg
+          width="54"
+          height="74"
           viewBox="0 0 24 30"
           className="relative z-10 overflow-visible"
         >
@@ -78,14 +78,9 @@ function SevenSegmentNode({ data, selected }: NodeProps<CircuitNodeData>) {
               opacity={segmentSignals[i] ? 1 : 0.6}
               stroke={segmentSignals[i] ? '#f87171' : 'transparent'}
               strokeWidth={segmentSignals[i] ? 0.4 : 0}
-              className="transition-all duration-75"
-              style={{
-                filter: segmentSignals[i] ? 'drop-shadow(0 0 4px rgba(239, 68, 68, 0.8))' : 'none'
-              }}
             />
           ))}
         </svg>
-        <div className="absolute inset-0 bg-gradient-to-tr from-white/10 via-transparent to-transparent rounded-2xl pointer-events-none opacity-30" />
       </div>
     </div>
   );
