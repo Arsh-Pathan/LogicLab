@@ -14,6 +14,7 @@ import MainLayout from './layouts/MainLayout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import AuthModal from './features/auth/components/AuthModal';
 import MigrationPromptModal from './features/auth/components/MigrationPromptModal';
+import LoadingScreen from './components/common/LoadingScreen';
 
 import { useKeyboard } from './hooks/useKeyboard';
 import { useUIStore } from './store/uiStore';
@@ -22,6 +23,7 @@ import { useAuthStore } from './store/authStore';
 export default function App() {
   const theme = useUIStore((s: any) => s.theme);
   const [isMobile, setIsMobile] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const initialize = useAuthStore((s) => s.initialize);
 
   // Initialize keyboard shortcuts
@@ -46,6 +48,10 @@ export default function App() {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  if (isLoading) {
+    return <LoadingScreen onComplete={() => setIsLoading(false)} />;
+  }
 
   return (
     <BrowserRouter>

@@ -465,6 +465,28 @@ a:hover {
   border-color: rgba(255, 255, 255, 0.1);
 }
 
+/* ============================================================
+   Loading Screen Animations
+   ============================================================ */
+
+@keyframes grid-pulse {
+  0%, 100% { opacity: 0.03; }
+  50% { opacity: 0.08; }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.animate-grid-pulse {
+  animation: grid-pulse 4s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
 /* Selection */
 ::selection {
   background: var(--accent-blue-light);
