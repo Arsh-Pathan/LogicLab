@@ -11,18 +11,26 @@ import NotFoundPage from './pages/NotFoundPage';
 import MobileWarning from './pages/MobileWarning';
 
 import MainLayout from './layouts/MainLayout';
-import LoadingScreen from './components/common/LoadingScreen';
+import ProtectedRoute from './components/auth/ProtectedRoute';
+import AuthModal from './features/auth/components/AuthModal';
+import MigrationPromptModal from './features/auth/components/MigrationPromptModal';
 
 import { useKeyboard } from './hooks/useKeyboard';
 import { useUIStore } from './store/uiStore';
+import { useAuthStore } from './store/authStore';
 
 export default function App() {
   const theme = useUIStore((s: any) => s.theme);
-  const [isLoading, setIsLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+  const initialize = useAuthStore((s) => s.initialize);
 
   // Initialize keyboard shortcuts
   useKeyboard();
+
+  // Initialize auth
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
 
   // Sync theme to root
   useEffect(() => {
@@ -41,32 +49,35 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      {/* Institutional Loading Overlay */}
-      {isLoading && (
-        <LoadingScreen onComplete={() => setIsLoading(false)} />
-      )}
-
       <Routes>
         <Route path="/" element={<MainLayout />}>
           {/* Index Redirect */}
           <Route index element={<Navigate to="/home" replace />} />
 
-          {/* Main Terminal Ports */}
+          {/* Main Routes */}
           <Route path="home" element={isMobile ? <MobileWarning /> : <HomePage />} />
           <Route path="docs" element={<DocsPage />} />
           <Route path="academy" element={<LearnPage />} />
           <Route path="community" element={<CommunityPage />} />
-          
-          {/* Research Ports (Public) */}
+
+          {/* Simulator — public (anonymous gets localStorage) */}
           <Route path="sandbox" element={isMobile ? <MobileWarning /> : <WorkspacePage />} />
           <Route path="sandbox/:projectId" element={isMobile ? <MobileWarning /> : <WorkspacePage />} />
-          <Route path="dashboard" element={<DashboardPage />} />
 
-          {/* Catch-All / Error Ports */}
+          {/* Protected routes */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="dashboard" element={<DashboardPage />} />
+          </Route>
+
+          {/* Catch-All */}
           <Route path="mobile-warning" element={<MobileWarning />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>
+
+      {/* Global modals */}
+      <AuthModal />
+      <MigrationPromptModal />
     </BrowserRouter>
   );
 }

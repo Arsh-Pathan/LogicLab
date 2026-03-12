@@ -40,8 +40,8 @@ function WireEdge({
   const strokeColor = isFrozen
     ? '#f59e0b'
     : isHigh
-      ? '#ffffff'
-      : '#334155';
+      ? 'var(--accent-blue)'
+      : 'var(--text-muted)';
 
   return (
     <>

@@ -1,211 +1,303 @@
-import { useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { 
-  BookOpen, 
-  Binary, 
-  Cpu, 
-  Terminal, 
-  Zap, 
-  ArrowRight, 
-  Activity, 
-  ShieldCheck, 
-  Layers, 
-  Microchip,
-  GraduationCap
+import {
+  GraduationCap, Clock,
+  Lock, ChevronRight, Play, ArrowRight,
+  Zap, Star
 } from 'lucide-react';
-import Logo from '../components/common/Logo';
-import CircuitBackground from '../components/visuals/CircuitBackground';
 
-gsap.registerPlugin(ScrollTrigger);
-
-const ACADEMY_CURRICULUM = [
+const CURRICULUM = [
   {
-    level: 'Lattice Alpha',
-    title: 'Foundational Logic',
-    desc: 'The prerequisite for all digital architectural research.',
+    level: 1,
+    title: 'Digital Foundations',
+    description: 'Start here — learn the basic building blocks of digital electronics.',
+    color: 'var(--accent-blue)',
+    bgColor: 'var(--accent-blue-light)',
     modules: [
-      { id: 'binary', title: 'The Binary State', text: 'Modeling deterministic true/false lattices and high-impedance states.' },
-      { id: 'gates', title: 'Primal Gate Synthesis', text: 'Analyzing signal propagation across AND, OR, and NOT primitives.' },
-      { id: 'timing', title: 'Propagation Timing', text: 'Understanding gate delays, setup times, and hold constraints.' }
-    ]
+      { id: 'binary-numbers', title: 'Binary Number System', duration: '15 min', description: 'Understand how computers represent data using only 0s and 1s. Learn to convert between binary, decimal, and hexadecimal.', status: 'available' },
+      { id: 'logic-gates', title: 'Basic Logic Gates', duration: '20 min', description: 'Master AND, OR, and NOT gates — the fundamental operations of digital logic.', status: 'available' },
+      { id: 'truth-tables', title: 'Truth Tables', duration: '15 min', description: 'Learn to create and read truth tables to describe gate behavior systematically.', status: 'available' },
+      { id: 'boolean-algebra', title: 'Boolean Algebra', duration: '25 min', description: 'Simplify logic expressions using boolean algebra laws and identities.', status: 'available' },
+    ],
   },
   {
-    level: 'Lattice Beta',
-    title: 'Combinational Systems',
-    desc: 'Synthesizing complex stateless architectures with perfect precision.',
+    level: 2,
+    title: 'Combinational Logic',
+    description: 'Build stateless circuits that compute outputs directly from inputs.',
+    color: 'var(--accent-green)',
+    bgColor: 'var(--accent-green-light)',
     modules: [
-      { id: 'arithmetic', title: 'Arithmetic Units', text: 'Designing full-adders, carry-lookahead structures, and multipliers.' },
-      { id: 'encoding', title: 'Decoding & Multiplexing', text: 'Managing multi-lane signal routing and addressing protocols.' },
-      { id: 'hazards', title: 'Static Hazard Analysis', text: 'Detecting glitches and race conditions in stateless paths.' }
-    ]
+      { id: 'compound-gates', title: 'NAND, NOR, XOR, XNOR', duration: '20 min', description: 'Explore compound gates and understand why NAND is called the universal gate.', status: 'available' },
+      { id: 'adders', title: 'Adder Circuits', duration: '30 min', description: 'Design half adders and full adders — the foundation of all arithmetic operations.', status: 'available' },
+      { id: 'multiplexers', title: 'Multiplexers & Decoders', duration: '25 min', description: 'Learn signal routing with MUX and DEMUX circuits for data selection.', status: 'available' },
+      { id: 'comparators', title: 'Comparator Circuits', duration: '20 min', description: 'Build circuits that compare two binary values and indicate their relationship.', status: 'locked' },
+    ],
   },
   {
-    level: 'Lattice Gamma',
-    title: 'Sequential Mastery',
-    desc: 'Understanding time-dependent states and memory hierarchies.',
+    level: 3,
+    title: 'Sequential Logic',
+    description: 'Add memory and timing to your circuits with flip-flops and state machines.',
+    color: 'var(--accent-purple)',
+    bgColor: 'var(--accent-purple-light)',
     modules: [
-      { id: 'flipflops', title: 'Memory Primitives', text: 'Latches, Flip-Flops, and the fundamental physics of data persistence.' },
-      { id: 'fsm', title: 'Finite State Machines', text: 'Architecting deterministic state transitions for complex control logic.' },
-      { id: 'registers', title: 'Register Files', text: 'Designing high-density static RAM and register-transfer lattices.' }
-    ]
-  }
+      { id: 'latches', title: 'SR & D Latches', duration: '25 min', description: 'Understand how circuits can "remember" — the simplest memory elements.', status: 'locked' },
+      { id: 'flip-flops', title: 'Flip-Flops', duration: '30 min', description: 'Master edge-triggered memory: D, JK, and T flip-flops for reliable storage.', status: 'locked' },
+      { id: 'counters', title: 'Counter Circuits', duration: '30 min', description: 'Design binary counters using flip-flops — from simple ripple to synchronous.', status: 'locked' },
+      { id: 'state-machines', title: 'Finite State Machines', duration: '35 min', description: 'Model complex behavior with Moore and Mealy state machines.', status: 'locked' },
+    ],
+  },
 ];
 
 export default function LearnPage() {
   const navigate = useNavigate();
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      // 1. Technical Reveal
-      const tl = gsap.timeline({ defaults: { ease: 'expo.out', duration: 1.5 } });
-      
-      tl.from('.academy-header', { y: 40, opacity: 0 });
-      tl.from('.reveal-item', { y: 30, opacity: 0, stagger: 0.1 }, "-=1");
-
-      // 2. Scroll Reveals
-      gsap.utils.toArray('.curriculum-section').forEach((section: any) => {
-        gsap.from(section, {
-          scrollTrigger: {
-            trigger: section,
-            start: 'top 85%',
-            toggleActions: 'play none none none'
-          },
-          y: 60,
-          opacity: 0,
-          duration: 1.5,
-          ease: 'power4.out'
-        });
-      });
-
-    }, containerRef);
-
-    return () => ctx.revert();
-  }, []);
+  const [expandedLevel, setExpandedLevel] = useState<number>(1);
 
   return (
-    <div ref={containerRef} className="min-h-screen bg-app text-main selection:bg-main selection:text-app relative overflow-x-hidden">
-      
-      {/* Background Decor Layer */}
-      <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-0">
-         <CircuitBackground />
+    <div className="page-enter" style={{ backgroundColor: 'var(--bg-app)' }}>
+
+      {/* Header */}
+      <div
+        style={{
+          background: 'linear-gradient(180deg, var(--bg-surface) 0%, var(--bg-app) 100%)',
+          borderBottom: '1px solid var(--border-subtle)',
+        }}
+      >
+        <div className="section-container py-12">
+          <div className="flex items-center gap-3 mb-3">
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center"
+              style={{ backgroundColor: 'var(--accent-purple-light)', color: 'var(--accent-purple)' }}
+            >
+              <GraduationCap size={20} />
+            </div>
+            <h1
+              className="text-3xl font-bold"
+              style={{ color: 'var(--text-main)' }}
+            >
+              Learn Digital Logic
+            </h1>
+          </div>
+          <p className="text-base max-w-xl" style={{ color: 'var(--text-dim)' }}>
+            A structured curriculum to take you from zero to building complex digital circuits. 
+            Each lesson includes theory, interactive examples, and hands-on exercises.
+          </p>
+
+          {/* Progress Bar */}
+          <div className="mt-8 max-w-md">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
+                Your progress
+              </span>
+              <span className="text-xs font-semibold" style={{ color: 'var(--accent-blue)' }}>
+                0 / {CURRICULUM.reduce((acc, l) => acc + l.modules.length, 0)} lessons
+              </span>
+            </div>
+            <div
+              className="h-2 rounded-full overflow-hidden"
+              style={{ backgroundColor: 'var(--border-subtle)' }}
+            >
+              <div
+                className="h-full rounded-full transition-all"
+                style={{
+                  width: '0%',
+                  background: 'linear-gradient(90deg, var(--accent-blue), var(--accent-purple))',
+                }}
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
-      <nav className="fixed top-0 left-0 right-0 z-[100] h-20 border-b border-border-main bg-app/80 backdrop-blur-3xl px-8 flex items-center justify-between">
-         <div className="flex items-center gap-6 cursor-pointer group" onClick={() => navigate('/home')}>
-            <Logo size={28} className="group-hover:rotate-180 transition-transform duration-700" />
-            <span className="text-xl font-black uppercase tracking-tighter">LOGICLAB</span>
-         </div>
-         <div className="flex items-center gap-10">
-            <button onClick={() => navigate('/docs')} className="text-[10px] font-black uppercase tracking-widest text-dim hover:text-main">Academy</button>
-            <button onClick={() => navigate('/sandbox')} className="btn-premium px-8 py-3">Enter Registry</button>
-         </div>
-      </nav>
-
-      <main className="max-w-7xl mx-auto px-8 py-48 space-y-48 relative z-10">
-         
-         {/* Academy Header Port */}
-         <header className="academy-header space-y-12">
-            <div className="flex items-center gap-6 text-dim opacity-30">
-               <GraduationCap size={40} strokeWidth={1} />
-               <div className="w-[1px] h-16 bg-main" />
-               <BookOpen size={40} strokeWidth={1} />
-            </div>
-            <div className="space-y-6">
-               <h1 className="text-8xl md:text-9xl font-black tracking-tightest leading-none uppercase italic">
-                  THE <br /> <span className="text-gradient">ACADEMY.</span>
-               </h1>
-               <p className="text-2xl font-medium text-dim max-w-2xl leading-snug italic opacity-60 uppercase tracking-widest italic">
-                  Advanced scholarly curriculum for high-fidelity logic synthesis. 
-                  Master the architecture of the silicon lattice.
-               </p>
-            </div>
-         </header>
-
-         {/* Curriculum Directory */}
-         <div className="space-y-40">
-            {ACADEMY_CURRICULUM.map((section, idx) => (
-               <section key={section.title} className="curriculum-section space-y-20">
-                  <div className="flex items-end justify-between border-b border-border-main pb-12">
-                     <div className="space-y-4">
-                        <span className="text-[10px] font-black uppercase tracking-[0.8em] text-accent-blue italic">{section.level}</span>
-                        <h2 className="text-5xl md:text-6xl text-main font-black tracking-tight uppercase italic">{section.title}</h2>
-                        <p className="text-lg font-bold text-dim opacity-40 uppercase tracking-widest italic">{section.desc}</p>
-                     </div>
-                     <div className="text-dim opacity-20 hidden md:block">
-                        <span className="text-9xl font-black lowercase opacity-10">0{idx + 1}</span>
-                     </div>
+      {/* Curriculum */}
+      <div className="section-container page-content">
+        <div className="max-w-4xl mx-auto space-y-8">
+          {CURRICULUM.map((level) => (
+            <div key={level.level} className="card overflow-hidden">
+              {/* Level Header */}
+              <button
+                onClick={() => setExpandedLevel(expandedLevel === level.level ? 0 : level.level)}
+                className="w-full p-6 flex items-center gap-5 text-left transition-colors"
+                style={{
+                  backgroundColor: expandedLevel === level.level ? level.bgColor : 'transparent',
+                }}
+              >
+                {/* Level Badge */}
+                <div
+                  className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 text-lg font-bold shadow-sm"
+                  style={{
+                    backgroundColor: level.level <= 1 ? level.color : 'var(--bg-app)',
+                    color: level.level <= 1 ? '#fff' : level.color,
+                    border: level.level > 1 ? `1px solid ${level.color}` : 'none'
+                  }}
+                >
+                  {level.level}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-lg font-semibold" style={{ color: 'var(--text-main)' }}>
+                      Level {level.level}: {level.title}
+                    </h2>
+                    <span
+                      className="tag"
+                      style={{
+                        backgroundColor: level.bgColor,
+                        color: level.color,
+                        fontSize: '11px',
+                        padding: '2px 8px',
+                      }}
+                    >
+                      {level.modules.length} modules
+                    </span>
                   </div>
+                  <p className="text-sm mt-1" style={{ color: 'var(--text-dim)' }}>
+                    {level.description}
+                  </p>
+                </div>
+                <ChevronRight
+                  size={20}
+                  style={{
+                    color: 'var(--text-muted)',
+                    transform: expandedLevel === level.level ? 'rotate(90deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.2s ease',
+                  }}
+                />
+              </button>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-1px bg-border-main border border-border-main shadow-float overflow-hidden">
-                     {section.modules.map((module) => (
-                        <div key={module.id} className="bg-app p-12 space-y-12 group hover:bg-neutral-50 transition-colors cursor-crosshair relative overflow-hidden">
-                           <div className="flex justify-between items-start">
-                              <div className="w-14 h-14 bg-main text-app flex items-center justify-center rounded-sm shadow-premium group-hover:scale-110 transition-transform duration-700">
-                                 {module.id === 'binary' ? <Binary size={24} /> : module.id === 'gates' ? <Microchip size={24} /> : <Activity size={24} />}
+              {/* Modules */}
+              {expandedLevel === level.level && (
+                <div style={{ borderTop: '1px solid var(--border-subtle)' }} className="divide-y divide-[var(--border-subtle)]">
+                  {level.modules.map((module) => (
+                    <div
+                      key={module.id}
+                      className="p-6 transition-colors"
+                      style={{ opacity: module.status === 'locked' ? 0.6 : 1 }}
+                    >
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                        <div className="flex gap-4">
+                          <div
+                            className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 mt-1"
+                            style={{
+                              backgroundColor: module.status === 'locked' ? 'var(--bg-surface)' : level.bgColor,
+                              color: module.status === 'locked' ? 'var(--text-muted)' : level.color,
+                            }}
+                          >
+                            {module.status === 'locked' ? <Lock size={16} /> : <Play size={16} fill="currentColor" />}
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-3">
+                              <h3 className="font-bold text-base" style={{ color: 'var(--text-main)' }}>{module.title}</h3>
+                              <div className="flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider" style={{ color: 'var(--text-muted)' }}>
+                                <Clock size={12} />
+                                {module.duration}
                               </div>
-                              <span className="text-[10px] font-black uppercase tracking-widest opacity-20 group-hover:opacity-100 transition-opacity">Module Active</span>
-                           </div>
-                           
-                           <div className="space-y-6">
-                              <h3 className="text-2xl font-black italic tracking-tighter uppercase leading-none">{module.title}</h3>
-                              <p className="text-sm font-medium text-dim opacity-60 leading-relaxed uppercase tracking-widest italic group-hover:opacity-100 transition-opacity">
-                                 {module.text}
-                              </p>
-                           </div>
-
-                           <div className="pt-8 border-t border-border-main flex justify-between items-center opacity-40 group-hover:opacity-100 transition-opacity">
-                              <div className="flex items-center gap-3 text-[9px] font-black uppercase tracking-widest">
-                                 <ShieldCheck size={12} className="text-green-500" />
-                                 <span>Academic Grade</span>
+                            </div>
+                            <p className="text-sm mt-1 max-w-xl" style={{ color: 'var(--text-dim)' }}>
+                              {module.description}
+                            </p>
+                            
+                            {/* Practical Highlight */}
+                            {module.status !== 'locked' && (
+                              <div className="mt-4 flex flex-wrap gap-2">
+                                <span className="tag tag-blue text-[10px] py-0.5 px-2">Interactive Lab</span>
+                                <span className="tag tag-green text-[10px] py-0.5 px-2">Practical Challenge</span>
                               </div>
-                              <button className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-main hover:gap-6 transition-all">
-                                 Begin <ArrowRight size={14} />
-                              </button>
-                           </div>
-
-                           {/* Technical Background Number */}
-                           <div className="absolute right-4 top-4 text-4xl font-black italic opacity-[0.03] group-hover:opacity-[0.06] transition-opacity">
-                              {module.id.slice(0, 2).toUpperCase()}
-                           </div>
+                            )}
+                          </div>
                         </div>
-                     ))}
-                  </div>
-               </section>
-            ))}
-         </div>
 
-         {/* Scholars Call */}
-         <section className="reveal-item py-40 bg-main text-app text-center space-y-12 relative overflow-hidden">
-            <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] bg-[size:40px_40px]" />
-            <div className="relative z-10 space-y-8">
-               <h2 className="text-7xl font-black italic tracking-tightest uppercase">Ready to <br /> graduate?</h2>
-               <p className="text-xl font-medium opacity-60 max-w-xl mx-auto leading-relaxed uppercase tracking-widest italic">
-                  Combine your academy knowledge to build persistent architectural patterns 
-                  and contribute to the peer-reviewed registry.
-               </p>
-               <button 
-                  onClick={() => navigate('/sandbox')}
-                  className="px-20 py-8 bg-app text-main font-black uppercase tracking-[0.5em] text-xs hover:invert transition-all flex items-center gap-8 shadow-2xl mx-auto group"
-               >
-                  ENTER TERMINAL PORT
-                  <Zap size={20} className="group-hover:rotate-12 transition-transform" />
-               </button>
+                        <div className="shrink-0">
+                          {module.status === 'locked' ? (
+                            <button className="btn-secondary opacity-50 cursor-not-allowed text-xs py-2 px-4">
+                              Locked
+                            </button>
+                          ) : (
+                            <button 
+                              onClick={() => navigate('/sandbox')}
+                              className="btn-primary text-xs py-2 px-6 shadow-sm hover:shadow-md"
+                              style={{ backgroundColor: level.color }}
+                            >
+                              Launch Lab
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-         </section>
+          ))}
+        </div>
 
-      </main>
+        {/* Practical Challenge Section */}
+        <div className="max-w-4xl mx-auto mt-16">
+          <div className="flex items-center gap-3 mb-6">
+            <Zap size={24} style={{ color: 'var(--accent-yellow)' }} />
+            <h2 className="text-2xl font-bold">Practical Challenges</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="card border-l-4 border-l-[var(--accent-blue)]">
+              <div className="flex justify-between items-start mb-4">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-blue-500">Binary Math</span>
+                <span className="text-xs font-medium px-2 py-1 rounded bg-blue-50 text-blue-600">Intermediate</span>
+              </div>
+              <h3 className="font-bold mb-2">Build a 4-bit Ripple Carry Adder</h3>
+              <p className="text-sm mb-6 text-dim">Using only Full Adders and basic gates, create a circuit that adds two 4-bit numbers.</p>
+              <button 
+                onClick={() => navigate('/sandbox')}
+                className="w-full btn-secondary text-xs"
+              >
+                Start Challenge
+              </button>
+            </div>
 
-      <footer className="py-24 border-t border-border-main text-center opacity-30 italic">
-         <div className="flex justify-center gap-8 mb-6">
-            <Layers size={20} />
-            <Terminal size={20} />
-            <Cpu size={20} />
-         </div>
-         <span className="text-[9px] font-black uppercase tracking-[0.8em]">Institutional Syllabus // TR-STABLE</span>
-      </footer>
+            <div className="card border-l-4 border-l-[var(--accent-purple)]">
+              <div className="flex justify-between items-start mb-4">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-purple-500">Memory</span>
+                <span className="text-xs font-medium px-2 py-1 rounded bg-purple-50 text-purple-600">Advanced</span>
+              </div>
+              <h3 className="font-bold mb-2">Design an 8-bit Register</h3>
+              <p className="text-sm mb-6 text-dim">Create a persistent 8-bit storage unit using D-Flip Flops with a common Load enable signal.</p>
+              <button 
+                onClick={() => navigate('/sandbox')}
+                className="w-full btn-secondary text-xs"
+              >
+                Start Challenge
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* CTA */}
+        <div className="max-w-4xl mx-auto mt-16">
+          <div
+            className="card p-10 text-center"
+            style={{
+              background: 'linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-app) 100%)',
+              border: '1px solid var(--border-main)',
+            }}
+          >
+            <Star size={32} className="mx-auto mb-4" style={{ color: 'var(--accent-yellow)' }} />
+            <h3
+              className="text-2xl font-bold mb-3"
+              style={{ color: 'var(--text-main)' }}
+            >
+              Certified Logic Designer?
+            </h3>
+            <p className="text-base mb-8 max-w-lg mx-auto" style={{ color: 'var(--text-dim)' }}>
+              Complete all interactive labs and challenges to unlock advanced IC design tools and community leaderboards.
+            </p>
+            <button
+              onClick={() => navigate('/sandbox')}
+              className="btn-primary"
+              style={{ padding: '14px 32px' }}
+            >
+              Enter the Simulator
+              <ArrowRight size={18} />
+            </button>
+          </div>
+        </div>
+      </div>
 
     </div>
   );

@@ -6,7 +6,7 @@ import Canvas from '../features/workspace/components/Canvas';
 import Toolbar from '../features/workspace/components/Toolbar';
 import StatusBar from '../features/workspace/components/StatusBar';
 import ContextMenu from '../features/workspace/components/ContextMenu';
-import ICBuilderModal from '../features/workspace/components/ICBuilderModal';
+import {ICBuilderModal} from '../features/workspace/components/ICBuilderModal';
 import PropertiesPanel from '../features/workspace/components/PropertiesPanel';
 import ICLibraryPanel from '../features/workspace/components/ICLibraryPanel';
 import ProjectManagerModal from '../features/projects/components/ProjectManagerModal';
@@ -17,7 +17,8 @@ import { useEffect, useCallback, useRef, useState } from 'react';
 import { useUIStore } from '../store/uiStore';
 import { useProjectStore } from '../store/projectStore';
 import { useCircuitStore } from '../store/circuitStore';
-import { fetchUserProjects } from '../lib/projectApi';
+import { useAuthStore } from '../store/authStore';
+import { circuitService } from '../lib/services';
 import { importProject } from '../serialization/importProject';
 
 export default function WorkspacePage() {
@@ -40,6 +41,7 @@ export default function WorkspacePage() {
   const setProjectId = useProjectStore((s) => s.setProjectId);
 
   const loadCircuit = useCircuitStore((s: any) => s.loadCircuit);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   // Show project name dialog when entering workspace for a NEW project only
   const [showNameDialog, setShowNameDialog] = useState(false);
@@ -48,7 +50,7 @@ export default function WorkspacePage() {
   // Auto-load project from URL parameter on mount
   useEffect(() => {
     if (!urlProjectId || projectLoadedRef.current) return;
-    
+
     // If the store already has this project loaded, skip
     if (storeProjectId === urlProjectId) {
       projectLoadedRef.current = true;
@@ -58,8 +60,7 @@ export default function WorkspacePage() {
     projectLoadedRef.current = true;
 
     (async () => {
-      const projects = await fetchUserProjects();
-      const project = projects.find(p => p.id === urlProjectId);
+      const project = await circuitService.getCircuit(urlProjectId);
       if (project) {
         const result = importProject(JSON.stringify(project.data));
         if (result) {
@@ -73,9 +74,12 @@ export default function WorkspacePage() {
 
   // Show name dialog only when there's no project (no URL param, no store ID, default name)
   useEffect(() => {
-    if (!urlProjectId && !storeProjectId && projectName === 'Untitled Project') {
-      setShowNameDialog(true);
-    }
+      if (!urlProjectId && !storeProjectId) {
+          if (projectName === 'Untitled Project') {
+              // eslint-disable-next-line react-hooks/set-state-in-effect
+              setShowNameDialog(true);
+          }
+      }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -163,11 +167,13 @@ export default function WorkspacePage() {
 
           <div className="flex-1" />
 
-          {/* Institutional Status (Anonymous Mode) */}
+          {/* Auth Status Indicator */}
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3 px-4 py-1.5 border border-border-main rounded-sm bg-neutral-50 shadow-sm">
-              <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-              <span className="text-[10px] font-black uppercase tracking-widest text-main truncate">Anonymous Protocol</span>
+              <div className={`w-2 h-2 rounded-full animate-pulse ${isAuthenticated ? 'bg-green-500' : 'bg-blue-500'}`} />
+              <span className="text-[10px] font-black uppercase tracking-widest text-main truncate">
+                {isAuthenticated ? 'Synced to Cloud' : 'Local Only'}
+              </span>
             </div>
           </div>
         </div>

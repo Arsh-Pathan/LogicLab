@@ -47,8 +47,8 @@ function InputNode({ data, selected, id }: NodeProps<CircuitNodeData>) {
         className={`
           !w-3 !h-3 !rounded-full !border-[3px] !-mr-1.5 z-10 !absolute !right-0
           ${isHigh
-            ? '!bg-accent-blue !border-white'
-            : '!bg-app !border-muted'}
+            ? '!bg-[#1a73e8] !border-white'
+            : '!bg-[#9aa0a6] !border-[#5f6368]'}
         `}
       />
     </div>

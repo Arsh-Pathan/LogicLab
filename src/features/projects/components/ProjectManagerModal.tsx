@@ -11,7 +11,7 @@ import { useProjectStore } from '../../../store/projectStore';
 import { exportProject } from '../../../serialization/exportProject';
 import { importProject } from '../../../serialization/importProject';
 import { SavedProject } from '../../../types/circuit';
-import { fetchUserProjects, saveProject, deleteProject as deleteProjectApi } from '../../../lib/projectApi';
+import { circuitService } from '../../../lib/services';
 
 export default function ProjectManagerModal() {
   const navigate = useNavigate();
@@ -38,10 +38,10 @@ export default function ProjectManagerModal() {
   const fetchProjects = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await fetchUserProjects();
+      const data = await circuitService.fetchUserCircuits();
       setProjects(data);
     } catch {
-      setError('Failed to load projects from local storage');
+      setError('Failed to load projects');
     } finally {
       setLoading(false);
     }
@@ -63,7 +63,7 @@ export default function ProjectManagerModal() {
     const projectData = exportProject(nodes, edges, customICs, saveName, saveDesc);
 
     try {
-      const saved = await saveProject('anonymous', projectData, currentProjectId);
+      const saved = await circuitService.saveCircuit(projectData, currentProjectId);
       if (saved) {
         setProjectId(saved.id);
         setProjectName(saved.name);
@@ -97,7 +97,7 @@ export default function ProjectManagerModal() {
 
     setLoading(true);
     try {
-      const success = await deleteProjectApi(id);
+      const success = await circuitService.deleteCircuit(id);
       if (success) {
         if (currentProjectId === id) {
           setProjectId(null);

@@ -27,13 +27,15 @@ import {
   DEFAULT_INPUT_COUNTS,
   MAX_INPUT_COUNTS,
   ICDefinition,
+  PinSide,
   HistoryEntry,
   SimulationMode,
   Pin,
 } from '../types/circuit';
 import { SimulationEngine } from '../engine/SimulationEngine';
 import { isGateType } from '../engine/gates';
-import { fetchCustomICs, saveICDefinition } from '../lib/icApi';
+import { fetchCustomICs } from '../lib/icApi';
+import { icService } from '../lib/services';
 
 // ============================================================
 // Helper: Create default pins for a component type
@@ -209,11 +211,25 @@ function createCircuitNodeData(
   icDefinition?: ICDefinition
 ): CircuitNodeData {
   const inputs = icDefinition
-    ? icDefinition.inputPins.map((p, i) => ({ id: p.pinId, label: p.label, type: 'input' as const, index: i, signal: undefined as SignalState }))
+    ? icDefinition.inputPins.map((p, i) => ({ 
+        id: p.pinId, 
+        label: p.label, 
+        type: 'input' as const, 
+        index: i, 
+        signal: undefined as SignalState,
+        side: p.side 
+      }))
     : createInputPins(type, inputCount);
 
   const outputs = icDefinition
-    ? icDefinition.outputPins.map((p, i) => ({ id: p.pinId, label: p.label, type: 'output' as const, index: i, signal: undefined as SignalState }))
+    ? icDefinition.outputPins.map((p, i) => ({ 
+        id: p.pinId, 
+        label: p.label, 
+        type: 'output' as const, 
+        index: i, 
+        signal: undefined as SignalState,
+        side: p.side
+      }))
     : createOutputPins(type);
 
 
@@ -293,8 +309,16 @@ interface CircuitState {
   pasteClipboard: (offset: XYPosition) => void;
 
   // Custom ICs
-  createIC: (name: string, description: string, nodeIds: string[], inputMarkers: { id: string; label: string }[], outputMarkers: { id: string; label: string }[]) => ICDefinition | null;
+  createIC: (
+    name: string,
+    description: string,
+    nodeIds: string[],
+    inputMarkers: { id: string; label: string; side?: PinSide }[],
+    outputMarkers: { id: string; label: string; side?: PinSide }[]
+  ) => ICDefinition | null;
   addCustomIC: (definition: ICDefinition) => void;
+  deleteIC: (id: string) => void;
+  renameIC: (id: string, newName: string) => void;
 
   // Project management
   clearCircuit: () => void;
@@ -962,12 +986,14 @@ export const useCircuitStore = create<CircuitState>((set, get) => {
         pinId: `ic_in_${i}`,
         nodeId: marker.id,
         label: marker.label || `IN${i}`,
+        side: marker.side || 'left',
       }));
 
       const outputPins = outputMarkers.map((marker, i) => ({
         pinId: `ic_out_${i}`,
         nodeId: marker.id,
         label: marker.label || `OUT${i}`,
+        side: marker.side || 'right',
       }));
 
       const icDef: ICDefinition = {
@@ -981,8 +1007,8 @@ export const useCircuitStore = create<CircuitState>((set, get) => {
         createdAt: new Date().toISOString(),
       };
 
-      // Persist to localStorage
-      saveICDefinition(icDef);
+      // Persist via service layer (Supabase + localStorage fallback)
+      icService.saveIC(icDef);
 
       set((state) => ({
         customICs: [...state.customICs, icDef],
@@ -995,6 +1021,24 @@ export const useCircuitStore = create<CircuitState>((set, get) => {
       set((state) => ({
         customICs: [...state.customICs, definition],
       }));
+    },
+
+    deleteIC: (id) => {
+      icService.deleteIC(id);
+      set((state) => ({
+        customICs: state.customICs.filter(ic => ic.id !== id),
+      }));
+    },
+
+    renameIC: (id, newName) => {
+      set((state) => {
+        const updated = state.customICs.map(ic =>
+          ic.id === id ? { ...ic, name: newName } : ic
+        );
+        const renamedIC = updated.find(ic => ic.id === id);
+        if (renamedIC) icService.saveIC(renamedIC);
+        return { customICs: updated };
+      });
     },
 
     // --------------------------------------------------------

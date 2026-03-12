@@ -10,35 +10,40 @@ import {
   FileJson,
   Loader2,
   Database,
-  Terminal,
   Activity,
   Binary,
   Layers,
-  ShieldCheck
+  ShieldCheck,
+  Copy,
+  CloudUpload,
 } from 'lucide-react';
 import { gsap } from 'gsap';
 import { useProjectStore } from '../store/projectStore';
 import { useCircuitStore } from '../store/circuitStore';
+import { useAuthStore } from '../store/authStore';
 import { SavedProject } from '../types/circuit';
-import { fetchUserProjects, deleteProject } from '../lib/projectApi';
+import { circuitService } from '../lib/services';
 import { importProject } from '../serialization/importProject';
-import Logo from '../components/common/Logo';
+import { getLocalStorageStats } from '../lib/services/migrationService';
 import CircuitBackground from '../components/visuals/CircuitBackground';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
   const { setProjectId, setProjectName } = useProjectStore();
   const loadCircuit = useCircuitStore((s: any) => s.loadCircuit);
+  const { profile, isAuthenticated, setShowMigrationPrompt } = useAuthStore();
 
   const [projects, setProjects] = useState<SavedProject[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const localStats = getLocalStorageStats();
+
   const fetchProjects = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await fetchUserProjects();
+      const data = await circuitService.fetchUserCircuits();
       setProjects(data);
     } catch (err) {
       console.error('Failed to fetch projects:', err);
@@ -81,12 +86,24 @@ export default function DashboardPage() {
     if (!window.confirm('Erase this architecture from the persistent lattice?')) return;
 
     try {
-      const success = await deleteProject(id);
+      const success = await circuitService.deleteCircuit(id);
       if (success) {
         setProjects((prev) => prev.filter((p) => p.id !== id));
       }
     } catch (err) {
       console.error('Delete failed:', err);
+    }
+  };
+
+  const handleDuplicateProject = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    try {
+      const copy = await circuitService.duplicateCircuit(id);
+      if (copy) {
+        setProjects((prev) => [copy, ...prev]);
+      }
+    } catch (err) {
+      console.error('Duplicate failed:', err);
     }
   };
 
@@ -115,27 +132,41 @@ export default function DashboardPage() {
     p.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const greeting = profile?.display_name
+    ? `Welcome back, ${profile.display_name}`
+    : 'Welcome back';
+
   return (
     <div ref={containerRef} className="min-h-screen bg-app text-main selection:bg-main selection:text-app relative overflow-x-hidden">
-      
+
       {/* Background Decor Layer */}
       <div className="fixed inset-0 pointer-events-none opacity-[0.02] z-0">
          <CircuitBackground />
       </div>
 
-      <nav className="fixed top-0 left-0 right-0 z-[100] h-20 border-b border-border-main bg-app/80 backdrop-blur-3xl px-8 flex items-center justify-between">
-         <div className="flex items-center gap-6 cursor-pointer group" onClick={() => navigate('/home')}>
-            <Logo size={28} className="group-hover:rotate-180 transition-transform duration-700" />
-            <span className="text-xl font-black uppercase tracking-tighter">LOGICLAB</span>
-         </div>
-         <div className="flex items-center gap-8">
-            <button onClick={() => navigate('/community')} className="text-[10px] font-black uppercase tracking-widest text-dim hover:text-main transition-colors">Registry</button>
-            <button onClick={() => navigate('/sandbox')} className="btn-premium px-8 py-3">Initialization Terminal</button>
-         </div>
-      </nav>
+      <main className="max-w-7xl mx-auto px-8 py-16 space-y-16 relative z-10">
 
-      <main className="max-w-7xl mx-auto px-8 py-48 space-y-32 relative z-10">
-         
+         {/* Migration Banner */}
+         {isAuthenticated && localStats.hasData && (
+           <div
+             className="reveal-item flex items-center justify-between p-5 rounded-lg"
+             style={{ backgroundColor: 'rgba(99, 102, 241, 0.08)', border: '1px solid rgba(99, 102, 241, 0.2)' }}
+           >
+             <div className="flex items-center gap-3">
+               <CloudUpload size={20} style={{ color: 'var(--accent-blue)' }} />
+               <span className="text-sm font-medium" style={{ color: 'var(--text-main)' }}>
+                 Found {localStats.projectCount} local project{localStats.projectCount !== 1 ? 's' : ''} — sync them to your account
+               </span>
+             </div>
+             <button
+               onClick={() => setShowMigrationPrompt(true)}
+               className="btn-primary text-xs px-4 py-2"
+             >
+               Sync Now
+             </button>
+           </div>
+         )}
+
          {/* Registry Header */}
          <header className="space-y-12">
             <div className="reveal-item flex items-center gap-6 text-dim opacity-30">
@@ -145,6 +176,9 @@ export default function DashboardPage() {
             </div>
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-12">
                <div className="space-y-6">
+                  {isAuthenticated && (
+                    <p className="reveal-item text-lg font-medium text-dim">{greeting}</p>
+                  )}
                   <h1 className="reveal-item text-8xl md:text-9xl font-black tracking-tightest leading-none uppercase italic">
                      THE <br /> <span className="text-gradient">REGISTRY.</span>
                   </h1>
@@ -170,9 +204,9 @@ export default function DashboardPage() {
             <span className="text-[9px] font-black uppercase tracking-[0.5em] text-dim opacity-40 italic">Query Persistent Data</span>
             <div className="relative group">
                <Search size={22} className="absolute left-6 top-1/2 -translate-y-1/2 text-dim opacity-30 group-focus-within:opacity-100 transition-opacity" />
-               <input 
-                  type="text" 
-                  placeholder="LATTICE_QUERY..." 
+               <input
+                  type="text"
+                  placeholder="LATTICE_QUERY..."
                   className="w-full bg-white/5 border border-border-main rounded-sm py-8 pl-18 pr-6 text-xl lowercase font-bold tracking-tight outline-none focus:border-main transition-all"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -197,7 +231,7 @@ export default function DashboardPage() {
          ) : (
             <div className="grid grid-cols-1 border-t border-border-main">
                {filteredProjects.map((project) => (
-                  <div 
+                  <div
                      key={project.id}
                      onClick={() => handleLoadProject(project)}
                      className="reveal-item p-12 border-b border-border-main flex flex-col md:flex-row items-center justify-between gap-12 group hover:bg-neutral-50 transition-all cursor-pointer relative overflow-hidden"
@@ -225,10 +259,18 @@ export default function DashboardPage() {
                               </div>
                            </div>
                         </div>
-                        <div className="flex items-center gap-10">
-                           <button 
+                        <div className="flex items-center gap-4">
+                           <button
+                              onClick={(e) => handleDuplicateProject(e, project.id)}
+                              className="w-12 h-12 border border-border-main flex items-center justify-center text-dim hover:text-blue-500 hover:border-blue-500 transition-all opacity-0 group-hover:opacity-100"
+                              title="Duplicate"
+                           >
+                              <Copy size={18} />
+                           </button>
+                           <button
                               onClick={(e) => handleDeleteProject(e, project.id)}
                               className="w-12 h-12 border border-border-main flex items-center justify-center text-dim hover:text-red-500 hover:border-red-500 transition-all opacity-0 group-hover:opacity-100"
+                              title="Delete"
                            >
                               <Trash2 size={18} />
                            </button>
@@ -241,18 +283,6 @@ export default function DashboardPage() {
                ))}
             </div>
          )}
-
-         {/* Technical Outro */}
-         <footer className="reveal-item pt-40 border-t border-border-main text-center space-y-12">
-            <div className="flex justify-center gap-8 opacity-20">
-               <Terminal size={24} />
-               <div className="w-12 h-[1px] bg-main my-auto" />
-               <Binary size={24} />
-            </div>
-            <p className="text-[10px] font-black uppercase tracking-[0.8em] text-dim opacity-30 italic">
-               All architectures persist in this terminal's local lattice.
-            </p>
-         </footer>
 
       </main>
 

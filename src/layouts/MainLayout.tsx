@@ -1,19 +1,15 @@
 import { Outlet } from 'react-router-dom';
+import Navbar from '../components/layout/Navbar';
+import Footer from '../components/layout/Footer';
 
-/**
- * MainLayout
- * High-Prestige Institutional Wrapper (v12)
- * Provides the global structural lattice for all academy terminal ports.
- */
 export default function MainLayout() {
   return (
-    <div className="min-h-screen bg-app text-main selection:bg-main selection:text-app">
-      {/* 
-          Lattice Container: 
-          Individual pages manage their own overflow and navigation layers 
-          to support cinematic transitions and technical overlays.
-      */}
-      <Outlet />
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--bg-app)', color: 'var(--text-main)' }}>
+      <Navbar />
+      <main className="flex-1">
+        <Outlet />
+      </main>
+      <Footer />
     </div>
   );
 }

@@ -55,8 +55,8 @@ function GateNode({ data, selected }: NodeProps<CircuitNodeData>) {
             className={`
               !w-3 !h-3 !rounded-full !border-2 !static !transform-none
               ${pin.signal === 1
-                ? '!bg-accent-blue !border-white'
-                : '!bg-app !border-muted'}
+                ? '!bg-[#1a73e8] !border-white'
+                : '!bg-[#9aa0a6] !border-[#5f6368]'}
             `}
           />
         ))}
@@ -145,8 +145,8 @@ function GateNode({ data, selected }: NodeProps<CircuitNodeData>) {
             className={`
               !w-4 !h-4 !rounded-full !border-2 !static !transform-none
               ${pin.signal === 1
-                ? '!bg-accent-blue !border-white'
-                : '!bg-app !border-muted'}
+                ? '!bg-[#1a73e8] !border-white'
+                : '!bg-[#9aa0a6] !border-[#5f6368]'}
             `}
           />
         ))}

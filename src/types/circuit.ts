@@ -47,15 +47,16 @@ export type Rotation = 0 | 90 | 180 | 270;
 /** Simulation execution mode */
 export type SimulationMode = 'live' | 'frozen';
 
-// ============================================================
-// Pin Definitions
-// ============================================================
+
+export type PinSide = 'left' | 'right' | 'top' | 'bottom';
 
 export interface Pin {
   id: string;
   label: string;
   type: 'input' | 'output';
   signal: SignalState;
+  /** Side for IC packaging */
+  side?: PinSide;
   /** Position index for ordering handles */
   index: number;
 }
@@ -131,6 +132,7 @@ export interface ICPinMapping {
   pinId: string;
   nodeId: string;
   label: string;
+  side: PinSide;
 }
 
 export interface ICDefinition {
@@ -251,6 +253,13 @@ export interface SavedProject {
   name: string;
   description: string;
   data: LogicProject;
+  /** Supabase-only fields — absent in localStorage */
+  is_public?: boolean;
+  is_template?: boolean;
+  stars_count?: number;
+  forks_count?: number;
+  views_count?: number;
+  forked_from?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -260,4 +269,25 @@ export interface UserProfile {
   email: string;
   display_name: string;
   avatar_url?: string;
+  bio: string;
+  website: string;
+  role: 'user' | 'moderator' | 'admin';
+  reputation: number;
+  circuits_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export type AuthView = 'login' | 'signup' | 'forgot-password';
+
+export interface AuthError {
+  message: string;
+  code?: string;
+}
+
+export interface MigrationResult {
+  success: boolean;
+  migratedCircuits: number;
+  migratedICs: number;
+  errors: string[];
 }

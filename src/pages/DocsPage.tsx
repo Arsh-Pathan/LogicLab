@@ -1,274 +1,509 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { 
-  Search, 
-  Cpu, 
-  Zap, 
-  Layers, 
-  Activity, 
-  ShieldCheck, 
-  Binary, 
-  Microchip, 
-  Globe,
-  ArrowRight,
-  ChevronRight,
-  Database,
-  Unplug
+  Search, ChevronRight
 } from 'lucide-react';
-import Logo from '../components/common/Logo';
-import CircuitBackground from '../components/visuals/CircuitBackground';
-
-gsap.registerPlugin(ScrollTrigger);
 
 const DOCS_STRUCTURE = [
   {
-    category: 'Institutional Core',
+    category: 'Getting Started',
     items: [
-      { id: 'philosophy', title: 'Deterministic Philosophy', sub: 'The science of absolute predictability in logic synthesis.' },
-      { id: 'lattice', title: 'Silicon Lattice Model', sub: 'Understanding the physically-mapped propagation fabric.' },
-      { id: 'wasm', title: 'WASM Synthesis Engine', sub: 'Near-native execution of massive gate arrays.' }
+      { 
+        id: 'overview', 
+        title: 'Overview',
+        content: `LogicLab is a free, open-source digital logic circuit simulator that runs entirely in your browser. It allows you to design, test, and learn about digital circuits using an intuitive visual interface.
+
+**Key Capabilities:**
+- Drag-and-drop circuit design on an infinite canvas
+- Real-time simulation with instant signal propagation
+- Custom IC (Integrated Circuit) packaging
+- Community sharing and collaboration
+- Dark mode and light mode support
+
+LogicLab is designed for students learning digital electronics, educators creating interactive lessons, and hobbyists exploring circuit design.`
+      },
+      { 
+        id: 'quickstart', 
+        title: 'Quick Start Guide',
+        content: `Follow these steps to build your first circuit:
+
+**Step 1: Open the Simulator**
+Navigate to the Simulator page from the top navigation bar. You'll see an empty canvas with a toolbar on the left.
+
+**Step 2: Add Components**
+Click the \`+\` button in the toolbar to open the component palette. Drag an INPUT switch and an AND gate onto the canvas.
+
+**Step 3: Connect Components**
+Click on an output port (right side of a component) and drag to an input port (left side) to create a wire connection.
+
+**Step 4: Simulate**
+Toggle the INPUT switches by clicking on them. Watch the signal propagate through your circuit in real-time.
+
+**Step 5: Save Your Work**  
+Click the save button in the toolbar to save your circuit. You can also export it as JSON for sharing.`
+      },
+      { 
+        id: 'interface', 
+        title: 'Interface Guide',
+        content: `The LogicLab simulator interface consists of several key areas:
+
+**Canvas** — The main design area where you place and connect components. Supports zoom (scroll), pan (middle-click drag), and selection.
+
+**Toolbar** — Located on the left side, provides quick access to common gates, tools, and actions like save/load.
+
+**Component Palette** — Opened via the \`+\` button, shows all available logic gates and ICs organized by category.
+
+**Properties Panel** — Shows details about the currently selected component, including its type, label, and current signal values.
+
+**Status Bar** — At the bottom, shows the current zoom level, component count, and simulation status.`
+      },
     ]
   },
   {
-    category: 'Primal Gates',
+    category: 'Logic Gates',
     items: [
-      { id: 'logic-standard', title: 'IEEE Logic Standards', sub: 'Mapping 0, 1, Z, and X states in the laboratory.' },
-      { id: 'propagation', title: 'Propagation Physics', sub: 'Nanosecond timing, parasitic capacitance, and gate delay.' },
-      { id: 'hazards', title: 'Static & Dynamic Hazards', sub: 'Detecting race conditions and glitches in the lattice.' }
+      { 
+        id: 'basic-gates', 
+        title: 'Basic Gates (AND, OR, NOT)',
+        content: `These are the fundamental building blocks of all digital circuits.
+
+**AND Gate**
+Outputs 1 (HIGH) only when ALL inputs are 1.
+| A | B | Output |
+|---|---|--------|
+| 0 | 0 | 0 |
+| 0 | 1 | 0 |
+| 1 | 0 | 0 |
+| 1 | 1 | 1 |
+
+**OR Gate**
+Outputs 1 (HIGH) when ANY input is 1.
+| A | B | Output |
+|---|---|--------|
+| 0 | 0 | 0 |
+| 0 | 1 | 1 |
+| 1 | 0 | 1 |
+| 1 | 1 | 1 |
+
+**NOT Gate (Inverter)**
+Outputs the opposite of its input.
+| Input | Output |
+|-------|--------|
+| 0 | 1 |
+| 1 | 0 |`
+      },
+      { 
+        id: 'compound-gates', 
+        title: 'Compound Gates (NAND, NOR, XOR)',
+        content: `Compound gates combine basic operations for more complex logic.
+
+**NAND Gate (NOT-AND)**
+The universal gate — any other gate can be built from NAND gates.
+Outputs 0 only when ALL inputs are 1.
+
+**NOR Gate (NOT-OR)**
+Another universal gate. Outputs 1 only when ALL inputs are 0.
+
+**XOR Gate (Exclusive OR)**
+Outputs 1 when inputs DIFFER. Essential for arithmetic circuits.
+| A | B | Output |
+|---|---|--------|
+| 0 | 0 | 0 |
+| 0 | 1 | 1 |
+| 1 | 0 | 1 |
+| 1 | 1 | 0 |
+
+**XNOR Gate (Exclusive NOR)**
+Outputs 1 when inputs are the SAME. Used in comparator circuits.`
+      },
+      { 
+        id: 'buffers', 
+        title: 'Buffers & Special Gates',
+        content: `**BUFFER**
+Simply passes the input to the output without modification. Useful for signal routing and debugging.
+
+**CLOCK**
+Generates a periodic square wave signal that alternates between 0 and 1 at a configurable frequency. Essential for sequential circuits.
+
+**Tri-State Buffer**
+Outputs the input signal when enabled, but enters a high-impedance state (Z) when disabled. Used in bus architectures.`
+      },
     ]
   },
   {
-    category: 'Architectures',
+    category: 'Circuit Design',
     items: [
-      { id: 'hierarchies', title: 'Hierarchical Encapsulation', sub: 'Wrapping complex lattices into persistent modules.' },
-      { id: 'registry', title: 'Global Module Registry', sub: 'Contributing verified architectural traces to the cloud.' },
-      { id: 'asic', title: 'Virtual ASIC Synthesis', sub: 'Prototyping instruction sets and instruction-ready modules.' }
+      { 
+        id: 'ic-design', 
+        title: 'Custom IC Packaging',
+        content: `One of LogicLab's powerful features is the ability to package sub-circuits into reusable ICs.
+
+**Creating a Custom IC:**
+1. Build and test your sub-circuit on the canvas
+2. Select all the components you want to include
+3. Click the "Package IC" button in the toolbar
+4. The IC Builder opens — click on INPUT/OUTPUT terminals to define pins
+5. Name your IC and save it
+
+**Using Custom ICs:**
+Once created, your custom IC appears in the IC Library panel. You can drag it onto the canvas like any other component.
+
+**Benefits:**
+- Reduces visual complexity of large designs
+- Creates reusable building blocks
+- Enables hierarchical design methodology
+- ICs can contain other ICs (nested hierarchy)`
+      },
+      { 
+        id: 'wiring', 
+        title: 'Wiring & Connections',
+        content: `**Creating Connections:**
+Click on a source port (output) and drag to a target port (input). A smooth bezier curve will be drawn.
+
+**Wire Colors:**
+- Gray: No signal (disconnected or idle)
+- Blue: Active HIGH signal (1)
+- Dim: Active LOW signal (0)
+
+**Tips:**
+- You can connect one output to multiple inputs (fan-out)
+- Each input can only have one connection
+- Click on a wire and press Delete to remove it
+- Use the Junction node to branch connections`
+      },
+      { 
+        id: 'saving', 
+        title: 'Saving & Sharing',
+        content: `**Local Save:**
+Your circuits are saved to your browser's local storage. Click the save icon in the toolbar to save your current project.
+
+**Export as JSON:**
+Export your circuit as a JSON file that can be shared with others or imported later.
+
+**Community Sharing:**
+Publish your circuit to the community gallery so other users can discover, learn from, and fork your designs.
+
+**Import:**
+Import circuits from JSON files shared by others. The circuit's components, connections, and custom ICs will be fully restored.`
+      },
     ]
-  }
+  },
 ];
 
 export default function DocsPage() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeSection, setActiveSection] = useState('philosophy');
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [activeSection, setActiveSection] = useState('overview');
 
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      // 1. Entrance Animation
-      const tl = gsap.timeline({ defaults: { ease: 'expo.out', duration: 1.5 } });
-      tl.from('.docs-sidebar', { x: -50, opacity: 0 });
-      tl.from('.docs-content-wrapper', { y: 30, opacity: 0 }, "-=1");
-      
-      // 2. Technical Wires
-      gsap.to('.docs-wire', {
-        strokeDashoffset: 0,
-        scrollTrigger: {
-          trigger: containerRef.current,
-          start: 'top top',
-          end: 'bottom bottom',
-          scrub: 1
-        }
-      });
+  const activeItem = DOCS_STRUCTURE.flatMap(g => g.items).find(i => i.id === activeSection);
 
-    }, containerRef);
-
-    return () => ctx.revert();
-  }, []);
+  // Filter docs based on search
+  const filteredDocs = searchQuery
+    ? DOCS_STRUCTURE.map(group => ({
+        ...group,
+        items: group.items.filter(item =>
+          item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.content.toLowerCase().includes(searchQuery.toLowerCase())
+        ),
+      })).filter(group => group.items.length > 0)
+    : DOCS_STRUCTURE;
 
   return (
-    <div ref={containerRef} className="min-h-screen bg-app text-main selection:bg-main selection:text-app relative flex">
+    <div className="page-enter flex" style={{ backgroundColor: 'var(--bg-app)', minHeight: 'calc(100vh - var(--nav-height))' }}>
       
-      {/* --- SIDEBAR: TRACE DIRECTORY --- */}
-      <aside className="docs-sidebar w-[380px] border-r border-border-main sticky top-0 h-screen hidden xl:flex flex-col bg-app/50 backdrop-blur-3xl z-40 p-10 gap-16 overflow-y-auto">
-         <div className="flex items-center gap-4 cursor-pointer" onClick={() => navigate('/home')}>
-            <Logo size={28} />
-            <span className="text-lg font-black uppercase tracking-tighter">LOGICLAB</span>
-         </div>
-
-         <div className="space-y-4">
-            <span className="text-[9px] font-black uppercase tracking-[0.5em] text-dim opacity-40 italic">Query Registry</span>
-            <div className="relative group">
-               <Search size={16} className="absolute left-6 top-1/2 -translate-y-1/2 text-dim opacity-30 group-focus-within:opacity-100 transition-opacity" />
-               <input 
-                  type="text" 
-                  placeholder="PROTOCOL_ID..." 
-                  className="w-full bg-white/5 border border-border-main rounded-sm py-4 pl-14 pr-4 text-[10px] font-black tracking-widest outline-none focus:border-main transition-all"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-               />
+      {/* Sidebar */}
+      <aside
+        className="w-72 shrink-0 overflow-y-auto hidden lg:block"
+        style={{
+          borderRight: '1px solid var(--border-subtle)',
+          backgroundColor: 'var(--bg-surface)',
+          position: 'sticky',
+          top: 'var(--nav-height)',
+          height: 'calc(100vh - var(--nav-height))',
+        }}
+      >
+        <div className="p-5">
+          {/* Sidebar Search */}
+          <div className="mb-6">
+            <div className="relative">
+              <Search
+                size={16}
+                className="absolute left-3 top-1/2 -translate-y-1/2"
+                style={{ color: 'var(--text-muted)' }}
+              />
+              <input
+                type="text"
+                placeholder="Search docs..."
+                className="input-field pl-10 text-sm"
+                style={{ padding: '8px 12px 8px 36px', fontSize: '13px' }}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
             </div>
-         </div>
+          </div>
 
-         <nav className="flex flex-col gap-12">
-            {DOCS_STRUCTURE.map((group, i) => (
-              <div key={i} className="space-y-6">
-                 <div className="flex items-center gap-3">
-                    <div className="w-4 h-[1px] bg-main opacity-20" />
-                    <span className="text-[9px] font-black uppercase tracking-[0.4em] opacity-40">{group.category}</span>
-                 </div>
-                 <div className="flex flex-col gap-1">
-                    {group.items.map((item) => (
-                      <button 
-                        key={item.id}
-                        onClick={() => setActiveSection(item.id)}
-                        className={`group text-left p-4 rounded-sm transition-all border border-transparent flex flex-col gap-1 ${activeSection === item.id ? 'bg-main text-app border-main shadow-premium' : 'hover:bg-white/5 hover:border-border-main'}`}
-                      >
-                         <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-black uppercase tracking-widest">{item.title}</span>
-                            <ChevronRight size={12} className={`opacity-20 group-hover:translate-x-1 transition-transform ${activeSection === item.id ? 'opacity-100 invert' : ''}`} />
-                         </div>
-                         <span className={`text-[8px] font-medium opacity-40 uppercase tracking-tighter line-clamp-1 ${activeSection === item.id ? 'opacity-70 invert' : ''}`}>{item.sub}</span>
-                      </button>
-                    ))}
-                 </div>
+          {/* Navigation */}
+          <nav className="space-y-6">
+            {filteredDocs.map((group) => (
+              <div key={group.category}>
+                <h3
+                  className="text-xs font-semibold uppercase tracking-wider mb-2 px-3"
+                  style={{ color: 'var(--text-muted)' }}
+                >
+                  {group.category}
+                </h3>
+                <div className="space-y-0.5">
+                  {group.items.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => setActiveSection(item.id)}
+                      className="w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center justify-between"
+                      style={{
+                        color: activeSection === item.id ? 'var(--accent-blue)' : 'var(--text-dim)',
+                        backgroundColor: activeSection === item.id ? 'var(--accent-blue-light)' : 'transparent',
+                        fontWeight: activeSection === item.id ? 600 : 400,
+                      }}
+                      onMouseEnter={e => {
+                        if (activeSection !== item.id) {
+                          (e.currentTarget.style as any).backgroundColor = 'var(--bg-hover)';
+                        }
+                      }}
+                      onMouseLeave={e => {
+                        if (activeSection !== item.id) {
+                          (e.currentTarget.style as any).backgroundColor = 'transparent';
+                        }
+                      }}
+                    >
+                      {item.title}
+                      {activeSection === item.id && <ChevronRight size={14} />}
+                    </button>
+                  ))}
+                </div>
               </div>
             ))}
-         </nav>
-
-         <div className="mt-auto pt-10 border-t border-border-main flex flex-col gap-4 opacity-30 italic">
-            <div className="flex items-center gap-3 text-[8px] font-black uppercase tracking-[0.6em]">
-               <div className="w-1 h-1 rounded-full bg-green-500 animate-pulse" />
-               Lattice Synced
-            </div>
-            <span className="text-[8px] font-black uppercase tracking-[0.4em]">v12.4_ACADEMY</span>
-         </div>
+          </nav>
+        </div>
       </aside>
 
-      {/* --- CONTENT: THE MANUSCRIPT --- */}
-      <main className="flex-1 docs-content-wrapper min-h-screen px-6 md:px-20 py-32 relative">
-         <div className="max-w-4xl mx-auto space-y-40">
-            
-            {/* ARTICLE HEADER */}
-            <header className="space-y-12">
-               <div className="flex items-center gap-6">
-                  <Activity size={32} strokeWidth={1} className="text-accent-blue" />
-                  <div className="h-[1px] flex-1 bg-border-main" />
-               </div>
-               <div className="space-y-4">
-                  <span className="text-[10px] font-black uppercase tracking-[0.8em] text-accent-blue italic">Institutional Whitepaper // P_0x{activeSection.length}</span>
-                  <h1 className="text-7xl md:text-9xl font-black tracking-tightest leading-none uppercase italic">
-                    {DOCS_STRUCTURE.flatMap(g => g.items).find(i => i.id === activeSection)?.title || 'Academy'}
-                  </h1>
-               </div>
-               <p className="text-2xl font-medium text-dim italic opacity-70 leading-relaxed uppercase tracking-widest">
-                 {DOCS_STRUCTURE.flatMap(g => g.items).find(i => i.id === activeSection)?.sub}
-               </p>
-            </header>
+      {/* Main Content */}
+      <main className="flex-1 min-w-0">
+        <div className="max-w-3xl mx-auto px-6 md:px-12 py-10">
+          {activeItem && (
+            <>
+              {/* Breadcrumb */}
+              <div className="flex items-center gap-2 mb-6 text-sm" style={{ color: 'var(--text-muted)' }}>
+                <button onClick={() => navigate('/docs')} className="hover:underline">Docs</button>
+                <ChevronRight size={14} />
+                <span style={{ color: 'var(--text-dim)' }}>
+                  {DOCS_STRUCTURE.find(g => g.items.some(i => i.id === activeSection))?.category}
+                </span>
+                <ChevronRight size={14} />
+                <span style={{ color: 'var(--text-main)' }}>{activeItem.title}</span>
+              </div>
 
-            {/* ARTICLE CONTENT (Mock Detailed Text) */}
-            <div className="space-y-24">
-               
-               <section className="space-y-10">
-                  <h3 className="text-3xl font-black italic tracking-tighter flex items-center gap-4">
-                    <span className="text-accent-blue opacity-50">#</span> 01_SYNTHESIS_MODELS
-                  </h3>
-                  <p className="research-text">
-                    LogicLab utilizes a **Deterministic Event-Driven Engine** to simulate the behavior of digital circuits. Unlike simplistic boolean evaluations found in traditional simulators, our system maps every logical primitive to a high-fidelity physical lattice. This lattice accounts for the **Physics of Propagation**, where signal integrity is maintained through multi-port observation nodes.
-                  </p>
-                  <p className="research-text">
-                    In this laboratory environment, a "Digital Gate" is not just a mathematical operator but a silicon-layer abstraction. Every AND, OR, and NOT gate models real-world propagation delay, capacitance hazards, and voltage thresholds (theoretical).
-                  </p>
-               </section>
+              {/* Title */}
+              <h1
+                className="text-3xl font-bold mb-8"
+                style={{ color: 'var(--text-main)' }}
+              >
+                {activeItem.title}
+              </h1>
 
-               {/* TECHNICAL DIAGRAM MOCK */}
-               <div className="hardware-card bg-white/5 border border-border-main rounded-sm p-12 relative overflow-hidden group">
-                  <svg className="absolute inset-0 w-full h-full opacity-[0.03] pointer-events-none" viewBox="0 0 400 400">
-                     <path className="docs-wire" d="M 0 50 H 100 V 150 H 300 V 250 H 400" stroke="currentColor" fill="none" strokeWidth="1" strokeDasharray="1000" strokeDashoffset="1000" />
-                     <path className="docs-wire" d="M 0 350 H 100 V 250 H 300 V 150 H 400" stroke="currentColor" fill="none" strokeWidth="1" strokeDasharray="1000" strokeDashoffset="1000" />
-                  </svg>
-                  <div className="relative z-10 flex flex-col md:flex-row items-center gap-12">
-                     <div className="w-full md:w-1/2 space-y-8">
-                        <div className="inline-flex items-center gap-3 px-3 py-1 rounded-sm border border-border-main text-[8px] font-black uppercase tracking-widest italic opacity-40">
-                           <ShieldCheck size={10} />
-                           Integrity Verified
-                        </div>
-                        <h4 className="text-2xl font-black tracking-tighter italic">LATTICE_TRACE_ID_442</h4>
-                        <p className="text-[10px] font-medium text-dim uppercase tracking-[0.2em] leading-relaxed italic">
-                           Visualizing the intersection of the primary and secondary propagation paths under native WASM synthesis load.
-                        </p>
-                     </div>
-                     <div className="w-full md:w-1/2 flex justify-center">
-                        <div className="w-48 h-48 border border-border-main rounded-full flex items-center justify-center relative group-hover:scale-110 transition-transform duration-1000">
-                           <div className="absolute inset-0 border border-dotted border-border-main animate-[spin_20s_linear_infinite] rounded-full" />
-                           <Binary size={48} className="text-main opacity-20" />
-                        </div>
-                     </div>
-                  </div>
-               </div>
+              {/* Content */}
+              <div
+                className="prose max-w-none"
+                style={{
+                  color: 'var(--text-dim)',
+                  lineHeight: '1.8',
+                  fontSize: '15px',
+                }}
+              >
+                {activeItem.content.split('\n\n').map((paragraph, i) => {
+                  // Handle headers
+                  if (paragraph.startsWith('**') && paragraph.endsWith('**')) {
+                    const text = paragraph.slice(2, -2);
+                    return (
+                      <h3 key={i} className="text-lg font-semibold mt-8 mb-3" style={{ color: 'var(--text-main)' }}>
+                        {text}
+                      </h3>
+                    );
+                  }
 
-               <section className="space-y-10">
-                  <h3 className="text-3xl font-black italic tracking-tighter flex items-center gap-4">
-                    <span className="text-accent-blue opacity-50">#</span> 02_ASIC_PROTOCOL
-                  </h3>
-                  <p className="research-text">
-                    The LogicLab instruction set allows researchers to protoype entire Application-Specific Integrated Circuits (ASICs). By using **Hierarchical Encapsulation**, designers can combine primal gates into massive state machines with zero performance penalty. Each encapsulated module is assigned a unique **Lattice Address**, facilitating peer-review and global collaboration via the registry.
-                  </p>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-8">
-                     {[
-                       { title: 'Zero Jitter', icon: <Zap /> },
-                       { title: 'Peer Review', icon: <Globe /> },
-                       { title: 'WASM Native', icon: <Cpu /> }
-                     ].map((item, i) => (
-                       <div key={i} className="p-6 border border-border-main rounded-sm space-y-4 hover:border-main transition-colors group">
-                          <div className="w-8 h-8 opacity-20 group-hover:opacity-100 transition-opacity">
-                             {item.icon}
-                          </div>
-                          <span className="block text-[10px] font-black uppercase tracking-widest">{item.title}</span>
-                       </div>
-                     ))}
-                  </div>
-               </section>
+                  // Handle tables
+                  if (paragraph.includes('|') && paragraph.includes('---')) {
+                    const rows = paragraph.trim().split('\n').filter(r => !r.includes('---'));
+                    const headers = rows[0]?.split('|').filter(Boolean).map(h => h.trim());
+                    const data = rows.slice(1).map(r => r.split('|').filter(Boolean).map(c => c.trim()));
+                    
+                    return (
+                      <div key={i} className="my-4 overflow-auto">
+                        <table
+                          className="w-full text-sm"
+                          style={{ borderCollapse: 'collapse' }}
+                        >
+                          <thead>
+                            <tr style={{ borderBottom: '2px solid var(--border-main)' }}>
+                              {headers?.map((h, j) => (
+                                <th
+                                  key={j}
+                                  className="text-left py-2 px-4 text-xs font-semibold uppercase"
+                                  style={{ color: 'var(--text-muted)' }}
+                                >
+                                  {h}
+                                </th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {data.map((row, j) => (
+                              <tr
+                                key={j}
+                                style={{ borderBottom: '1px solid var(--border-subtle)' }}
+                              >
+                                {row.map((cell, k) => (
+                                  <td
+                                    key={k}
+                                    className="py-2 px-4 font-mono text-sm"
+                                    style={{ color: 'var(--text-main)' }}
+                                  >
+                                    {cell}
+                                  </td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    );
+                  }
 
-               <section className="space-y-10">
-                  <h3 className="text-3xl font-black italic tracking-tighter flex items-center gap-4">
-                    <span className="text-accent-blue opacity-50">#</span> 03_SCHOLARLY_CONTRIBUTION
-                  </h3>
-                  <p className="research-text italic opacity-50">
-                    "The contribution of architectural primitives to the global registry is the cornerstone of shared digital research. Every trace verified in the laboratory increases the collective intelligence of the logical lattice."
-                  </p>
-                  <div className="pt-12">
-                     <button 
-                        onClick={() => navigate('/community')}
-                        className="px-16 py-8 border border-main text-main font-black uppercase tracking-[0.5em] text-[10px] hover:bg-main hover:text-app transition-all flex items-center gap-6 group"
-                     >
-                        Join the Academy
-                        <ArrowRight size={18} className="group-hover:translate-x-3 transition-transform" />
-                     </button>
-                  </div>
-               </section>
-            </div>
+                  // Handle list items (lines starting with -)
+                  if (paragraph.includes('\n-')) {
+                    const lines = paragraph.split('\n');
+                    const intro = lines.find(l => !l.startsWith('-'));
+                    const items = lines.filter(l => l.startsWith('-')).map(l => l.slice(2));
+                    
+                    return (
+                      <div key={i} className="my-4">
+                        {intro && <p className="mb-2">{renderBold(intro)}</p>}
+                        <ul className="space-y-1.5">
+                          {items.map((item, j) => (
+                            <li
+                              key={j}
+                              className="flex items-start gap-2 text-sm"
+                            >
+                              <span style={{ color: 'var(--accent-blue)', marginTop: '4px' }}>•</span>
+                              <span>{renderBold(item)}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    );
+                  }
 
-            {/* ARTICLE FOOTER / METADATA */}
-            <footer className="pt-24 border-t border-border-main flex flex-col md:flex-row justify-between items-center gap-10">
-               <div className="flex items-center gap-10">
-                  <div className="flex flex-col">
-                     <span className="text-[8px] font-black uppercase tracking-[0.4em] opacity-30 italic">Lattice Registry ID</span>
-                     <span className="text-[10px] font-mono font-bold tracking-widest text-accent-blue">LL_P_8859_SYN</span>
-                  </div>
-                  <div className="flex flex-col">
-                     <span className="text-[8px] font-black uppercase tracking-[0.4em] opacity-30 italic">Revision Status</span>
-                     <span className="text-[10px] font-black uppercase tracking-widest text-green-500">VERIFIED_STABLE</span>
-                  </div>
-               </div>
-               <div className="flex gap-4">
-                  {[Database, Unplug, Microchip, Layers].map((Icon, i) => (
-                    <div key={i} className="w-10 h-10 border border-border-main flex items-center justify-center text-dim opacity-20 hover:opacity-100 hover:text-main transition-all cursor-crosshair">
-                       <Icon size={16} strokeWidth={1} />
-                    </div>
-                  ))}
-               </div>
-            </footer>
-         </div>
+                  // Handle numbered lists
+                  if (/^\d+\./.test(paragraph.split('\n')[0])) {
+                    const items = paragraph.split('\n').filter(l => /^\d+\./.test(l));
+                    return (
+                      <ol key={i} className="my-4 space-y-2">
+                        {items.map((item, j) => (
+                          <li
+                            key={j}
+                            className="flex items-start gap-3 text-sm"
+                          >
+                            <span
+                              className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 mt-0.5"
+                              style={{ backgroundColor: 'var(--accent-blue-light)', color: 'var(--accent-blue)' }}
+                            >
+                              {j + 1}
+                            </span>
+                            <span>{renderBold(item.replace(/^\d+\.\s*/, ''))}</span>
+                          </li>
+                        ))}
+                      </ol>
+                    );
+                  }
+
+                  // Regular paragraph
+                  return (
+                    <p key={i} className="my-3">
+                      {renderBold(paragraph)}
+                    </p>
+                  );
+                })}
+              </div>
+
+              {/* Navigation */}
+              <div
+                className="mt-16 pt-8 flex justify-between"
+                style={{ borderTop: '1px solid var(--border-subtle)' }}
+              >
+                {(() => {
+                  const allItems = DOCS_STRUCTURE.flatMap(g => g.items);
+                  const idx = allItems.findIndex(i => i.id === activeSection);
+                  const prev = idx > 0 ? allItems[idx - 1] : null;
+                  const next = idx < allItems.length - 1 ? allItems[idx + 1] : null;
+                  return (
+                    <>
+                      {prev ? (
+                        <button
+                          onClick={() => setActiveSection(prev.id)}
+                          className="text-sm font-medium flex items-center gap-2 transition-colors"
+                          style={{ color: 'var(--accent-blue)' }}
+                        >
+                          <ChevronRight size={16} className="rotate-180" />
+                          {prev.title}
+                        </button>
+                      ) : <div />}
+                      {next ? (
+                        <button
+                          onClick={() => setActiveSection(next.id)}
+                          className="text-sm font-medium flex items-center gap-2 transition-colors"
+                          style={{ color: 'var(--accent-blue)' }}
+                        >
+                          {next.title}
+                          <ChevronRight size={16} />
+                        </button>
+                      ) : <div />}
+                    </>
+                  );
+                })()}
+              </div>
+            </>
+          )}
+        </div>
       </main>
-
-      {/* BACKGROUND DECOR */}
-      <div className="fixed inset-0 pointer-events-none opacity-[0.02] z-0">
-         <CircuitBackground />
-      </div>
-
     </div>
   );
+}
+
+// Helper to render bold text (**text**)
+function renderBold(text: string) {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={i} style={{ color: 'var(--text-main)', fontWeight: 600 }}>{part.slice(2, -2)}</strong>;
+    }
+    // Handle inline code (`code`)
+    const codeParts = part.split(/(`[^`]+`)/g);
+    return codeParts.map((cp, j) => {
+      if (cp.startsWith('`') && cp.endsWith('`')) {
+        return (
+          <code
+            key={`${i}-${j}`}
+            className="text-sm px-1.5 py-0.5 rounded"
+            style={{
+              backgroundColor: 'var(--bg-surface)',
+              color: 'var(--accent-blue)',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.85em',
+            }}
+          >
+            {cp.slice(1, -1)}
+          </code>
+        );
+      }
+      return cp;
+    });
+  });
 }

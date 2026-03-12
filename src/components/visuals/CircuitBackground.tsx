@@ -66,16 +66,7 @@ export default function CircuitBackground() {
         className="w-full h-full text-main"
         preserveAspectRatio="xMidYMid slice"
       >
-        <defs>
-          <filter id="path-glow">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur" />
-            <feComposite in="SourceGraphic" in2="blur" operator="over" />
-          </filter>
-          <radialGradient id="mouseGradient">
-            <stop offset="0%" stopColor="currentColor" stopOpacity="0.2" />
-            <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
-          </radialGradient>
-        </defs>
+        <defs />
 
         {/* --- Background Lattice Grid --- */}
         <g stroke="currentColor" strokeWidth="0.5" fill="none" opacity="0.05">
@@ -100,7 +91,7 @@ export default function CircuitBackground() {
         </g>
 
         {/* --- Animated Flowing Pulses --- */}
-        <g stroke="currentColor" strokeWidth="2" fill="none" filter="url(#path-glow)" opacity="0.5">
+        <g stroke="currentColor" strokeWidth="2" fill="none" opacity="0.6">
           <path className="signal-pulse" d="M -100 250 Q 400 50 800 400 T 1500 200" strokeDasharray="12,80" />
           <path className="signal-pulse" d="M -100 600 Q 500 850 900 600 T 1500 900" strokeDasharray="12,80" />
           <path className="signal-pulse" d="M 300 -100 Q 150 400 500 750 T 300 1500" strokeDasharray="12,80" />
@@ -116,8 +107,6 @@ export default function CircuitBackground() {
           ))}
         </g>
 
-        {/* --- Dynamic Proximity Layer --- */}
-        <circle className="proximity-glow" cx="0" cy="0" r="300" fill="url(#mouseGradient)" />
       </svg>
     </div>
   );

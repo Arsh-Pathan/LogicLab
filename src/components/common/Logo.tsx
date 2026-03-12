@@ -12,12 +12,7 @@ export default function Logo({ size = 40, className = "" }: { size?: number, cla
         xmlns="http://www.w3.org/2000/svg"
         className="relative z-10 transition-all duration-700"
       >
-        <defs>
-          <filter id="gate-glow">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur" />
-            <feComposite in="SourceGraphic" in2="blur" operator="over" />
-          </filter>
-        </defs>
+        <defs />
 
         <g 
           className="group-hover:translate-x-1 transition-transform duration-700"

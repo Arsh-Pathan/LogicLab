@@ -126,3 +126,36 @@ export async function fetchPublishedCircuits(): Promise<any[]> {
     return [];
   }
 }
+
+/**
+ * Get all local projects synchronously (for migration).
+ */
+export function getAllLocalProjects(): SavedProject[] {
+  try {
+    const data = localStorage.getItem(PROJECTS_KEY);
+    if (!data) return [];
+    return JSON.parse(data) as SavedProject[];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Clear all local projects (after migration).
+ */
+export function clearLocalProjects(): void {
+  localStorage.removeItem(PROJECTS_KEY);
+}
+
+/**
+ * Update a local project's ID (for mapping after migration).
+ */
+export function updateLocalProjectId(oldId: string, newId: string): void {
+  try {
+    const projects = getAllLocalProjects();
+    const updated = projects.map(p => p.id === oldId ? { ...p, id: newId } : p);
+    localStorage.setItem(PROJECTS_KEY, JSON.stringify(updated));
+  } catch {
+    // ignore
+  }
+}

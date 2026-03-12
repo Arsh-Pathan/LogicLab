@@ -45,3 +45,17 @@ export function deleteICDefinition(id: string): void {
     console.error('Failed to delete IC from localStorage:', err);
   }
 }
+
+/**
+ * Get all local ICs synchronously (for migration).
+ */
+export function getAllLocalICs(): ICDefinition[] {
+  return fetchCustomICs();
+}
+
+/**
+ * Clear all local IC definitions (after migration).
+ */
+export function clearLocalICs(): void {
+  localStorage.removeItem(IC_STORAGE_KEY);
+}

@@ -5,9 +5,21 @@ import { CircuitNodeData } from '../types/circuit';
 function ICNode({ data, selected }: NodeProps<CircuitNodeData>) {
   const { type, label, inputs, outputs, rotation } = data;
 
+  const allPins = useMemo(() => [...inputs, ...outputs], [inputs, outputs]);
+
+  const leftPins = useMemo(() => allPins.filter(p => (p as any).side === 'left' || (!(p as any).side && p.type === 'input')), [allPins]);
+  const rightPins = useMemo(() => allPins.filter(p => (p as any).side === 'right' || (!(p as any).side && p.type === 'output')), [allPins]);
+  const topPins = useMemo(() => allPins.filter(p => (p as any).side === 'top'), [allPins]);
+  const bottomPins = useMemo(() => allPins.filter(p => (p as any).side === 'bottom'), [allPins]);
+
+  const nodeWidth = useMemo(
+    () => Math.max(140, Math.max(topPins.length, bottomPins.length) * 24 + 60),
+    [topPins.length, bottomPins.length]
+  );
+
   const nodeHeight = useMemo(
-    () => Math.max(60, Math.max(inputs.length, outputs.length) * 22 + 20),
-    [inputs.length, outputs.length]
+    () => Math.max(80, Math.max(leftPins.length, rightPins.length) * 24 + 40),
+    [leftPins.length, rightPins.length]
   );
 
   const icColor = useMemo(() => {
@@ -29,31 +41,43 @@ function ICNode({ data, selected }: NodeProps<CircuitNodeData>) {
 
   return (
     <div
-      className="relative flex items-center"
-      style={{ transform: `rotate(${rotation}deg)` }}
+      className="relative flex items-center justify-center"
+      style={{ transform: `rotate(${rotation}deg)`, width: nodeWidth, height: nodeHeight }}
     >
       {/* IC body with integrated handles and labels */}
       <div
-        className={`relative flex border-[1.5px] rounded-lg
-          ${selected ? 'border-white z-50' : ''}
+        className={`relative flex border-2 rounded-xl transition-all overflow-hidden w-full h-full
+          ${selected ? 'z-50' : ''}
         `}
         style={{
-          minWidth: '100px',
-          height: `${nodeHeight}px`,
-          borderColor: selected ? '#ffffff' : icColor,
-          backgroundColor: 'var(--bg-app)',
-          borderStyle: 'solid',
+          borderColor: selected ? 'var(--accent-blue)' : 'var(--border-main)',
+          backgroundColor: 'var(--bg-panel)',
+          boxShadow: selected ? '0 0 0 4px var(--accent-blue-light), var(--shadow-xl)' : 'var(--shadow-md)',
+          background: `linear-gradient(165deg, var(--bg-panel) 0%, var(--bg-canvas) 100%)`,
         }}
       >
-        {/* Notch */}
+        {/* Mold Parting Line (Subtle horizontal line across the chip) */}
+        <div className="absolute top-1/2 left-0 right-0 h-[1.5px] bg-main/5 pointer-events-none" />
+        <div className="absolute top-0 bottom-0 left-1/2 w-[1.5px] bg-main/5 pointer-events-none" />
+
+        {/* Notch (Ceramic/Plastic style) */}
         <div
-          className="absolute top-0 left-1/2 -translate-x-1/2 w-4 h-2 rounded-b-full"
-          style={{ backgroundColor: icColor, opacity: 0.4 }}
-        />
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-4 rounded-b-xl border-x border-b border-border-main flex items-start justify-center"
+          style={{ backgroundColor: 'var(--bg-app)', boxShadow: 'inset 0 1px 4px rgba(0,0,0,0.2)' }}
+        >
+          <div className="w-8 h-1.5 rounded-full mt-1.5" style={{ backgroundColor: icColor, opacity: 0.8 }} />
+        </div>
+
+        {/* Batch ID / Technical markings */}
+        <div className="absolute bottom-3 right-3 opacity-20 pointer-events-none select-none">
+          <span className="text-[7px] font-black font-mono text-main uppercase tracking-[0.4em]">
+            {type}-{allPins.length}X-REV2
+          </span>
+        </div>
 
         {/* Center Title Display */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none flex-col px-6">
-           <div className="text-[10px] sm:text-[11px] font-black text-main uppercase tracking-widest text-center" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere', lineHeight: 1.2 }}>
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none flex-col px-10">
+           <div className="text-[13px] font-black text-main uppercase tracking-[0.2em] text-center leading-tight drop-shadow-sm" style={{ wordBreak: 'break-word' }}>
              {label.replace(/_/g, ' ')}
            </div>
 
@@ -63,7 +87,7 @@ function ICNode({ data, selected }: NodeProps<CircuitNodeData>) {
 
              if (type === 'IC' && customDesc && customDesc !== fallbackDesc) {
                return (
-                 <div className="text-[7.5px] text-dim opacity-80 font-bold mt-1 uppercase tracking-[0.2em] text-center" style={{ wordBreak: 'break-word', lineHeight: 1.2 }}>
+                 <div className="text-[9px] text-muted font-bold mt-2.5 uppercase tracking-widest text-center opacity-60" style={{ wordBreak: 'break-word', lineHeight: 1.2 }}>
                    {customDesc}
                  </div>
                );
@@ -74,7 +98,7 @@ function ICNode({ data, selected }: NodeProps<CircuitNodeData>) {
 
              if (type !== 'IC' && normalizedLabel !== normalizedType) {
                return (
-                 <div className="text-[7.5px] text-dim font-bold mt-1 uppercase tracking-[0.2em] text-center" style={{ wordBreak: 'break-word', lineHeight: 1.2 }}>
+                 <div className="text-[8px] text-muted font-black mt-2 uppercase tracking-[0.3em] text-center opacity-40" style={{ wordBreak: 'break-word', lineHeight: 1.2 }}>
                    {normalizedType}
                  </div>
                );
@@ -84,51 +108,93 @@ function ICNode({ data, selected }: NodeProps<CircuitNodeData>) {
            })()}
         </div>
 
-        {/* Input handles & inside Labels */}
-        <div className="absolute left-0 top-0 bottom-0 flex flex-col justify-evenly pointer-events-none">
-          {inputs.map((pin) => (
-            <div key={pin.id} className="relative flex items-center" style={{ height: `${100 / Math.max(inputs.length, 1)}%` }}>
+        {/* LEFT Handles */}
+        <div className="absolute left-0 top-0 bottom-0 flex flex-col justify-evenly pointer-events-none py-4">
+          {leftPins.map((pin) => (
+            <div key={pin.id} className="relative flex items-center h-full px-2.5">
               <Handle
-                type="target"
+                type={pin.type === 'input' ? 'target' : 'source'}
                 position={Position.Left}
                 id={pin.id}
-                className="!w-[9px] !h-[9px] !rounded-full !border-[1.5px] pointer-events-auto"
-                style={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: 0,
-                  transform: 'translate(-50%, -50%)',
-                  backgroundColor: pin.signal === 1 ? '#22c55e' : 'var(--bg-panel)',
-                  borderColor: pin.signal === 1 ? '#22c55e' : '#4b5563',
-                }}
+                className={`
+                  !w-4 !h-4 !rounded-full !border-[2.5px] !static !transform-none pointer-events-auto transition-all hover:scale-125
+                  ${pin.signal === 1
+                    ? '!bg-accent-blue !border-white'
+                    : '!bg-border-strong !border-border-subtle'}
+                `}
+                style={{ marginLeft: '-19px' }}
               />
-              <span className="text-[7.5px] text-gray-300 font-bold font-mono select-none ml-[7px]">
+              <span className="text-[9px] text-main/60 font-black font-mono select-none ml-2 uppercase tracking-tighter">
                 {pin.label}
               </span>
             </div>
           ))}
         </div>
 
-        {/* Output handles & inside Labels */}
-        <div className="absolute right-0 top-0 bottom-0 flex flex-col justify-evenly pointer-events-none text-right">
-          {outputs.map((pin) => (
-            <div key={pin.id} className="relative flex items-center justify-end" style={{ height: `${100 / Math.max(outputs.length, 1)}%` }}>
-              <span className="text-[7.5px] text-gray-300 font-bold font-mono select-none mr-[7px]">
+        {/* RIGHT Handles */}
+        <div className="absolute right-0 top-0 bottom-0 flex flex-col justify-evenly pointer-events-none py-4 text-right">
+          {rightPins.map((pin) => (
+            <div key={pin.id} className="relative flex items-center justify-end h-full px-2.5">
+              <span className="text-[9px] text-main/60 font-black font-mono select-none mr-2 uppercase tracking-tighter">
                 {pin.label}
               </span>
               <Handle
-                type="source"
+                type={pin.type === 'input' ? 'target' : 'source'}
                 position={Position.Right}
                 id={pin.id}
-                className="!w-[9px] !h-[9px] !rounded-full !border-[1.5px] pointer-events-auto"
-                style={{
-                  position: 'absolute',
-                  top: '50%',
-                  right: 0,
-                  transform: 'translate(50%, -50%)',
-                  backgroundColor: pin.signal === 1 ? '#22c55e' : 'var(--bg-panel)',
-                  borderColor: pin.signal === 1 ? '#22c55e' : '#4b5563',
-                }}
+                className={`
+                  !w-4 !h-4 !rounded-full !border-[2.5px] !static !transform-none pointer-events-auto transition-all hover:scale-125
+                  ${pin.signal === 1
+                    ? '!bg-accent-blue !border-white'
+                    : '!bg-border-strong !border-border-subtle'}
+                `}
+                style={{ marginRight: '-19px' }}
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* TOP Handles */}
+        <div className="absolute top-0 left-0 right-0 flex justify-evenly pointer-events-none px-4">
+          {topPins.map((pin) => (
+            <div key={pin.id} className="relative flex flex-col items-center w-full py-2">
+              <Handle
+                type={pin.type === 'input' ? 'target' : 'source'}
+                position={Position.Top}
+                id={pin.id}
+                className={`
+                  !w-4 !h-4 !rounded-full !border-[2.5px] !static !transform-none pointer-events-auto transition-all hover:scale-125
+                  ${pin.signal === 1
+                    ? '!bg-accent-blue !border-white'
+                    : '!bg-border-strong !border-border-subtle'}
+                `}
+                style={{ marginTop: '-19px' }}
+              />
+              <span className="text-[9px] text-main/60 font-black font-mono select-none mt-1 uppercase tracking-tighter">
+                {pin.label}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* BOTTOM Handles */}
+        <div className="absolute bottom-0 left-0 right-0 flex justify-evenly pointer-events-none px-4">
+          {bottomPins.map((pin) => (
+            <div key={pin.id} className="relative flex flex-col items-center w-full py-2">
+              <span className="text-[9px] text-main/60 font-black font-mono select-none mb-1 uppercase tracking-tighter">
+                {pin.label}
+              </span>
+              <Handle
+                type={pin.type === 'input' ? 'target' : 'source'}
+                position={Position.Bottom}
+                id={pin.id}
+                className={`
+                  !w-4 !h-4 !rounded-full !border-[2.5px] !static !transform-none pointer-events-auto transition-all hover:scale-125
+                  ${pin.signal === 1
+                    ? '!bg-accent-blue !border-white'
+                    : '!bg-border-strong !border-border-subtle'}
+                `}
+                style={{ marginBottom: '-19px' }}
               />
             </div>
           ))}

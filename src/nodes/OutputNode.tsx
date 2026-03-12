@@ -19,8 +19,8 @@ function OutputNode({ data, selected }: NodeProps<CircuitNodeData>) {
         className={`
           !w-4 !h-4 !rounded-full !border-[3px] !absolute !-left-2
           ${isHigh
-            ? '!bg-white !border-accent-blue'
-            : '!bg-app !border-muted'}
+            ? '!bg-white !border-[#1a73e8]'
+            : '!bg-[#9aa0a6] !border-[#5f6368]'}
         `}
       />
 
