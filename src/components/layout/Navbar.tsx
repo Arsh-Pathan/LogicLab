@@ -1,38 +1,23 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import {
-  Search, Menu, X, Sun, Moon,
-} from 'lucide-react';
-import { useUIStore } from '../../store/uiStore';
-import { useAuthStore } from '../../store/authStore';
+import { Menu, X, Github } from 'lucide-react';
 import Logo from '../common/Logo';
-import UserMenu from '../../features/auth/components/UserMenu';
 
 const NAV_LINKS = [
-  { label: 'Docs', path: '/docs' },
-  { label: 'Learn', path: '/academy' },
-  { label: 'Community', path: '/community' },
-  { label: 'Simulator', path: '/sandbox' },
+  { label: 'Home', path: '/' },
+  { label: 'Simulator', path: '/simulator' },
 ];
 
 export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const theme = useUIStore((s: any) => s.theme);
-  const toggleTheme = useUIStore((s: any) => s.toggleTheme);
-  const { isAuthenticated, setShowAuthModal, setAuthView } = useAuthStore();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
 
-  const isActive = (path: string) => location.pathname.startsWith(path);
+  const isActive = (path: string) =>
+    path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
 
-  // Don't render navbar on sandbox/workspace pages
-  if (location.pathname.startsWith('/sandbox')) return null;
-
-  const handleSignIn = () => {
-    setAuthView('login');
-    setShowAuthModal(true);
-  };
+  // Don't render navbar on simulator pages
+  if (location.pathname.startsWith('/simulator')) return null;
 
   return (
     <>
@@ -40,17 +25,18 @@ export default function Navbar() {
         className="sticky top-0 z-[100] border-b"
         style={{
           height: 'var(--nav-height)',
-          backgroundColor: 'var(--bg-app)',
+          backgroundColor: 'rgba(26, 26, 26, 0.8)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
           borderColor: 'var(--border-subtle)',
         }}
       >
         <div className="section-container h-full flex items-center justify-between">
           {/* Left: Logo + Nav Links */}
           <div className="flex items-center gap-8">
-            {/* Logo */}
             <div
               className="flex items-center gap-3 cursor-pointer shrink-0"
-              onClick={() => navigate('/home')}
+              onClick={() => navigate('/')}
             >
               <Logo size={28} />
               <span
@@ -67,99 +53,48 @@ export default function Navbar() {
                 <button
                   key={link.path}
                   onClick={() => navigate(link.path)}
-                  className="px-4 py-2 rounded-full text-sm font-medium transition-colors relative"
+                  className="px-4 py-2 rounded-full text-sm font-medium transition-colors"
                   style={{
-                    color: isActive(link.path) ? 'var(--accent-blue)' : 'var(--text-dim)',
-                    backgroundColor: isActive(link.path) ? 'var(--accent-blue-light)' : 'transparent',
+                    color: isActive(link.path) ? 'var(--text-main)' : 'var(--text-dim)',
                   }}
                   onMouseEnter={e => {
                     if (!isActive(link.path)) {
-                      (e.target as HTMLElement).style.backgroundColor = 'var(--bg-hover)';
+                      (e.target as HTMLElement).style.color = 'var(--text-main)';
                     }
                   }}
                   onMouseLeave={e => {
                     if (!isActive(link.path)) {
-                      (e.target as HTMLElement).style.backgroundColor = 'transparent';
+                      (e.target as HTMLElement).style.color = 'var(--text-dim)';
                     }
                   }}
                 >
                   {link.label}
                 </button>
               ))}
-              {isAuthenticated && (
-                <button
-                  onClick={() => navigate('/dashboard')}
-                  className="px-4 py-2 rounded-full text-sm font-medium transition-colors relative"
-                  style={{
-                    color: isActive('/dashboard') ? 'var(--accent-blue)' : 'var(--text-dim)',
-                    backgroundColor: isActive('/dashboard') ? 'var(--accent-blue-light)' : 'transparent',
-                  }}
-                  onMouseEnter={e => {
-                    if (!isActive('/dashboard')) {
-                      (e.target as HTMLElement).style.backgroundColor = 'var(--bg-hover)';
-                    }
-                  }}
-                  onMouseLeave={e => {
-                    if (!isActive('/dashboard')) {
-                      (e.target as HTMLElement).style.backgroundColor = 'transparent';
-                    }
-                  }}
-                >
-                  Dashboard
-                </button>
-              )}
             </div>
           </div>
 
-          {/* Right: Search, Theme, Auth */}
-          <div className="flex items-center gap-2">
-            {/* Search */}
-            <button
-              onClick={() => setSearchOpen(!searchOpen)}
-              className="p-2 rounded-full transition-colors"
+          {/* Right: GitHub + CTA */}
+          <div className="flex items-center gap-3">
+            <a
+              href="https://github.com/Arsh-Pathan/LogicLab"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 rounded-full transition-colors hidden sm:flex"
               style={{ color: 'var(--text-dim)' }}
-              onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--bg-hover)')}
-              onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
+              onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-main)')}
+              onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-dim)')}
             >
-              <Search size={20} />
+              <Github size={20} />
+            </a>
+
+            <button
+              onClick={() => navigate('/simulator')}
+              className="btn-primary hidden sm:flex"
+              style={{ padding: '8px 20px', fontSize: '13px' }}
+            >
+              Open Simulator
             </button>
-
-            {isAuthenticated ? (
-              /* Authenticated: UserMenu (includes theme toggle) */
-              <UserMenu />
-            ) : (
-              /* Not authenticated: Theme toggle + Sign In + CTA */
-              <>
-                <button
-                  onClick={toggleTheme}
-                  className="p-2 rounded-full transition-colors"
-                  style={{ color: 'var(--text-dim)' }}
-                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--bg-hover)')}
-                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
-                  title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-                >
-                  {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-                </button>
-
-                <button
-                  onClick={handleSignIn}
-                  className="hidden sm:flex px-4 py-2 rounded-full text-sm font-medium transition-colors"
-                  style={{ color: 'var(--text-main)', border: '1px solid var(--border-subtle)' }}
-                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--bg-hover)')}
-                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
-                >
-                  Sign In
-                </button>
-
-                <button
-                  onClick={() => navigate('/sandbox')}
-                  className="btn-primary hidden sm:flex ml-1"
-                  style={{ padding: '8px 20px', fontSize: '13px' }}
-                >
-                  Open Simulator
-                </button>
-              </>
-            )}
 
             {/* Mobile Menu Toggle */}
             <button
@@ -173,34 +108,6 @@ export default function Navbar() {
             </button>
           </div>
         </div>
-
-        {/* Search Bar (expandable) */}
-        {searchOpen && (
-          <div
-            className="absolute top-full left-0 right-0 border-b p-4"
-            style={{
-              backgroundColor: 'var(--bg-app)',
-              borderColor: 'var(--border-subtle)',
-            }}
-          >
-            <div className="section-container">
-              <div className="relative max-w-xl">
-                <Search
-                  size={18}
-                  className="absolute left-4 top-1/2 -translate-y-1/2"
-                  style={{ color: 'var(--text-muted)' }}
-                />
-                <input
-                  type="text"
-                  placeholder="Search documentation, circuits, tutorials..."
-                  className="input-field pl-12"
-                  autoFocus
-                  onKeyDown={e => e.key === 'Escape' && setSearchOpen(false)}
-                />
-              </div>
-            </div>
-          </div>
-        )}
       </nav>
 
       {/* Mobile Menu */}
@@ -230,30 +137,18 @@ export default function Navbar() {
                 {link.label}
               </button>
             ))}
-            {isAuthenticated && (
-              <button
-                onClick={() => { navigate('/dashboard'); setMobileOpen(false); }}
-                className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-colors"
-                style={{
-                  color: isActive('/dashboard') ? 'var(--accent-blue)' : 'var(--text-main)',
-                  backgroundColor: isActive('/dashboard') ? 'var(--accent-blue-light)' : 'transparent',
-                }}
-              >
-                Dashboard
-              </button>
-            )}
             <div className="pt-4 space-y-2">
-              {!isAuthenticated && (
-                <button
-                  onClick={() => { handleSignIn(); setMobileOpen(false); }}
-                  className="w-full text-center px-4 py-3 rounded-lg text-sm font-medium transition-colors"
-                  style={{ color: 'var(--text-main)', border: '1px solid var(--border-subtle)' }}
-                >
-                  Sign In
-                </button>
-              )}
+              <a
+                href="https://github.com/Arsh-Pathan/LogicLab"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-colors block"
+                style={{ color: 'var(--text-main)' }}
+              >
+                GitHub
+              </a>
               <button
-                onClick={() => { navigate('/sandbox'); setMobileOpen(false); }}
+                onClick={() => { navigate('/simulator'); setMobileOpen(false); }}
                 className="btn-primary w-full justify-center"
               >
                 Open Simulator

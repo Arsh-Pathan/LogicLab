@@ -1,6 +1,6 @@
 import { ReactFlowProvider } from 'reactflow';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Save, FolderOpen, Home, Globe, Package } from 'lucide-react';
+import { Save, Home, Package } from 'lucide-react';
 
 import Canvas from '../features/workspace/components/Canvas';
 import Toolbar from '../features/workspace/components/Toolbar';
@@ -122,23 +122,10 @@ export default function WorkspacePage() {
         {/* Action Infrastructure Bar */}
         <div className="h-12 bg-app border-b border-border-main flex items-center px-6 gap-3 shrink-0 z-50">
           <button
-            onClick={() => navigate('/home')}
+            onClick={() => navigate('/')}
             className="flex items-center gap-2 px-4 py-1.5 rounded-sm text-dim hover:text-main hover:bg-neutral-100 transition-all text-[10px] font-black uppercase tracking-[0.2em]"
           >
             <Home size={12} /> Home
-          </button>
-          <div className="w-[1px] h-4 bg-border-main" />
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="flex items-center gap-2 px-4 py-1.5 rounded-sm text-dim hover:text-main hover:bg-neutral-100 transition-all text-[10px] font-black uppercase tracking-[0.2em]"
-          >
-            <FolderOpen size={12} /> Projects
-          </button>
-          <button
-            onClick={() => navigate('/community')}
-            className="flex items-center gap-2 px-4 py-1.5 rounded-sm text-dim hover:text-main hover:bg-neutral-100 transition-all text-[10px] font-black uppercase tracking-[0.2em]"
-          >
-            <Globe size={12} /> Community
           </button>
           <div className="w-[1px] h-4 bg-border-main" />
           <button
