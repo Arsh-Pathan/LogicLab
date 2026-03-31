@@ -7,17 +7,25 @@ import MobileWarning from './pages/MobileWarning';
 
 import MainLayout from './layouts/MainLayout';
 import LoadingScreen from './components/common/LoadingScreen';
+import AuthModal from './features/auth/components/AuthModal';
 
 import { useKeyboard } from './hooks/useKeyboard';
 import { useUIStore } from './store/uiStore';
+import { useAuthStore } from './store/authStore';
 
 export default function App() {
   const theme = useUIStore((s: any) => s.theme);
   const [isMobile, setIsMobile] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const initialize = useAuthStore((s) => s.initialize);
 
   // Initialize keyboard shortcuts
   useKeyboard();
+
+  // Initialize auth
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
 
   // Sync theme to root
   useEffect(() => {
@@ -40,6 +48,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      <AuthModal />
       <Routes>
         <Route path="/" element={<MainLayout />}>
           <Route index element={isMobile ? <MobileWarning /> : <HomePage />} />

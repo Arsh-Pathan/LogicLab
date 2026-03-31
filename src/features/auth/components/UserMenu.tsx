@@ -29,7 +29,7 @@ export default function UserMenu() {
   const handleSignOut = async () => {
     setOpen(false);
     await signOut();
-    navigate('/home');
+    navigate('/');
   };
 
   return (

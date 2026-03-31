@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X, Github } from 'lucide-react';
+import { Menu, X, Github, LogIn } from 'lucide-react';
 import Logo from '../common/Logo';
+import { useAuthStore } from '../../store/authStore';
+import UserMenu from '../../features/auth/components/UserMenu';
 
 const NAV_LINKS = [
   { label: 'Home', path: '/' },
@@ -13,11 +15,18 @@ export default function Navbar() {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  const { isAuthenticated, setShowAuthModal, setAuthView } = useAuthStore();
+
   const isActive = (path: string) =>
     path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
 
   // Don't render navbar on simulator pages
   if (location.pathname.startsWith('/simulator')) return null;
+
+  const handleSignIn = () => {
+    setAuthView('login');
+    setShowAuthModal(true);
+  };
 
   return (
     <>
@@ -41,7 +50,11 @@ export default function Navbar() {
               <Logo size={28} />
               <span
                 className="text-lg font-bold hidden sm:block"
-                style={{ color: 'var(--text-main)', letterSpacing: '-0.02em' }}
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  color: 'var(--text-main)',
+                  letterSpacing: '-0.02em',
+                }}
               >
                 LogicLab
               </span>
@@ -74,7 +87,7 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* Right: GitHub + CTA */}
+          {/* Right: GitHub + Auth + CTA */}
           <div className="flex items-center gap-3">
             <a
               href="https://github.com/Arsh-Pathan/LogicLab"
@@ -87,6 +100,24 @@ export default function Navbar() {
             >
               <Github size={20} />
             </a>
+
+            {isAuthenticated ? (
+              <UserMenu />
+            ) : (
+              <button
+                onClick={handleSignIn}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                style={{
+                  color: 'var(--text-main)',
+                  border: '1px solid var(--border-main)',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--bg-hover)')}
+                onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
+              >
+                <LogIn size={16} />
+                <span className="hidden sm:inline">Sign In</span>
+              </button>
+            )}
 
             <button
               onClick={() => navigate('/simulator')}
@@ -138,6 +169,16 @@ export default function Navbar() {
               </button>
             ))}
             <div className="pt-4 space-y-2">
+              {!isAuthenticated && (
+                <button
+                  onClick={() => { handleSignIn(); setMobileOpen(false); }}
+                  className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                  style={{ color: 'var(--text-main)' }}
+                >
+                  <LogIn size={16} />
+                  Sign In
+                </button>
+              )}
               <a
                 href="https://github.com/Arsh-Pathan/LogicLab"
                 target="_blank"

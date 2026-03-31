@@ -57,7 +57,7 @@ function FeatureCard({
 
   return (
     <div
-      className="rounded-xl p-8 transition-all duration-200"
+      className="feature-card rounded-xl p-8 transition-all duration-200"
       style={{
         border: '1px solid var(--border-subtle)',
         backgroundColor: 'var(--bg-card)',
