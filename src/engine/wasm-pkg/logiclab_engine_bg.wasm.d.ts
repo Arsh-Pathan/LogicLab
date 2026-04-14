@@ -1,0 +1,30 @@
+/* tslint:disable */
+/* eslint-disable */
+export const memory: WebAssembly.Memory;
+export const __wbg_wasmsimulationengine_free: (a: number, b: number) => void;
+export const wasmsimulationengine_addConnection: (a: number, b: number, c: number) => void;
+export const wasmsimulationengine_addInputPin: (a: number, b: number, c: number, d: number, e: number) => void;
+export const wasmsimulationengine_addNode: (a: number, b: number, c: number) => void;
+export const wasmsimulationengine_clear: (a: number) => void;
+export const wasmsimulationengine_dispose: (a: number) => void;
+export const wasmsimulationengine_evaluate: (a: number) => void;
+export const wasmsimulationengine_getAllSignals: (a: number) => number;
+export const wasmsimulationengine_getNodeInputs: (a: number, b: number, c: number) => number;
+export const wasmsimulationengine_getNodeOutputs: (a: number, b: number, c: number) => number;
+export const wasmsimulationengine_getState: (a: number) => number;
+export const wasmsimulationengine_new: () => number;
+export const wasmsimulationengine_recomputeAll: (a: number) => void;
+export const wasmsimulationengine_recomputeSubgraph: (a: number, b: number, c: number) => void;
+export const wasmsimulationengine_removeConnection: (a: number, b: number, c: number) => void;
+export const wasmsimulationengine_removeInputPin: (a: number, b: number, c: number, d: number, e: number) => void;
+export const wasmsimulationengine_removeNode: (a: number, b: number, c: number) => void;
+export const wasmsimulationengine_reset: (a: number) => void;
+export const wasmsimulationengine_setClockValue: (a: number, b: number, c: number, d: number) => void;
+export const wasmsimulationengine_setInputValue: (a: number, b: number, c: number, d: number) => void;
+export const wasmsimulationengine_setLiveMode: (a: number, b: number) => void;
+export const wasmsimulationengine_step: (a: number) => number;
+export const wasmsimulationengine_updateNodeProperties: (a: number, b: number, c: number, d: number, e: number) => void;
+export const __wbindgen_export: (a: number, b: number) => number;
+export const __wbindgen_export2: (a: number, b: number, c: number, d: number) => number;
+export const __wbindgen_export3: (a: number) => void;
+export const __wbindgen_add_to_stack_pointer: (a: number) => number;

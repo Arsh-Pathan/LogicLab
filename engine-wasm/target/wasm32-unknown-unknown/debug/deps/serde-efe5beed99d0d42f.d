@@ -1,0 +1,12 @@
+C:\Users\ArshPathan\Projects\Websites\LogicLab\engine-wasm\target\wasm32-unknown-unknown\debug\deps\serde-efe5beed99d0d42f.d: C:\Users\ArshPathan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\lib.rs C:\Users\ArshPathan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\integer128.rs C:\Users\ArshPathan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\mod.rs C:\Users\ArshPathan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\de.rs C:\Users\ArshPathan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\ser.rs C:\Users\ArshPathan\Projects\Websites\LogicLab\engine-wasm\target\wasm32-unknown-unknown\debug\build\serde-70daff33333b7954\out/private.rs
+
+C:\Users\ArshPathan\Projects\Websites\LogicLab\engine-wasm\target\wasm32-unknown-unknown\debug\deps\libserde-efe5beed99d0d42f.rmeta: C:\Users\ArshPathan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\lib.rs C:\Users\ArshPathan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\integer128.rs C:\Users\ArshPathan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\mod.rs C:\Users\ArshPathan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\de.rs C:\Users\ArshPathan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\ser.rs C:\Users\ArshPathan\Projects\Websites\LogicLab\engine-wasm\target\wasm32-unknown-unknown\debug\build\serde-70daff33333b7954\out/private.rs
+
+C:\Users\ArshPathan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\lib.rs:
+C:\Users\ArshPathan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\integer128.rs:
+C:\Users\ArshPathan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\mod.rs:
+C:\Users\ArshPathan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\de.rs:
+C:\Users\ArshPathan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\ser.rs:
+C:\Users\ArshPathan\Projects\Websites\LogicLab\engine-wasm\target\wasm32-unknown-unknown\debug\build\serde-70daff33333b7954\out/private.rs:
+
+# env-dep:OUT_DIR=C:\\Users\\ArshPathan\\Projects\\Websites\\LogicLab\\engine-wasm\\target\\wasm32-unknown-unknown\\debug\\build\\serde-70daff33333b7954\\out

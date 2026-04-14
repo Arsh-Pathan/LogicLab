@@ -1,0 +1,16 @@
+{
+  "name": "logiclab-engine",
+  "type": "module",
+  "description": "High-performance digital circuit simulation engine for LogicLab",
+  "version": "0.1.0",
+  "files": [
+    "logiclab_engine_bg.wasm",
+    "logiclab_engine.js",
+    "logiclab_engine.d.ts"
+  ],
+  "main": "logiclab_engine.js",
+  "types": "logiclab_engine.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
