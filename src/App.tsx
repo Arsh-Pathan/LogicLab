@@ -24,7 +24,7 @@ export default function App() {
 
   // Initialize auth
   useEffect(() => {
-    initialize();
+    initialize().then();
   }, [initialize]);
 
   // Sync theme to root
