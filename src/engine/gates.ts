@@ -318,6 +318,14 @@ export function evaluateComponent(
       break;
     }
 
+    case 'JUNCTION': {
+      // Pass-through: copy input signal to all 5 outputs
+      const inSignal = resolve(inputs.get('in') ?? inputs.values().next().value);
+      for (let i = 0; i < 5; i++) {
+        outputs.set(`out_${i}`, inSignal);
+      }
+      break;
+    }
     case 'IC': {
       // IC logic is handled by the SimulationEngine directly
       // using sub-engines. We return an empty map here.

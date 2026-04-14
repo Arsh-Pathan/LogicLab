@@ -36,6 +36,7 @@ import { SimulationEngine } from '../engine/SimulationEngine';
 import { isGateType } from '../engine/gates';
 import { fetchCustomICs } from '../lib/icApi';
 import { icService } from '../lib/services';
+import { getNodeType } from '../lib/nodeTypeUtils';
 
 // ============================================================
 // Helper: Create default pins for a component type
@@ -729,16 +730,14 @@ export const useCircuitStore = create<CircuitState>((set, get) => {
 
           const inputs = state.engine.getNodeInputs(n.id);
 
-          // Check if any output signal actually differs
+          // Check if any output signal actually differs (including transitions to undefined)
           let changed = false;
           for (const p of n.data.outputs) {
-            const newSig = outputs.get(p.id);
-            if (newSig !== undefined && newSig !== p.signal) { changed = true; break; }
+            if (outputs.has(p.id) && outputs.get(p.id) !== p.signal) { changed = true; break; }
           }
           if (!changed) {
             for (const p of n.data.inputs) {
-              const newSig = inputs.get(p.id);
-              if (newSig !== undefined && newSig !== p.signal) { changed = true; break; }
+              if (inputs.has(p.id) && inputs.get(p.id) !== p.signal) { changed = true; break; }
             }
           }
           if (!changed) return n;
@@ -831,6 +830,9 @@ export const useCircuitStore = create<CircuitState>((set, get) => {
       // Rebuild engine
       state.engine.dispose();
       const newEngine = new SimulationEngine();
+      newEngine.subscribeAll(() => {
+        get().updateSignalCache();
+      });
       for (const data of entry.nodes) {
         newEngine.addNode(data);
       }
@@ -876,6 +878,9 @@ export const useCircuitStore = create<CircuitState>((set, get) => {
       // Rebuild engine
       state.engine.dispose();
       const newEngine = new SimulationEngine();
+      newEngine.subscribeAll(() => {
+        get().updateSignalCache();
+      });
       for (const data of entry.nodes) {
         newEngine.addNode(data);
       }
@@ -1180,39 +1185,6 @@ export const useCircuitStore = create<CircuitState>((set, get) => {
   };
 });
 
-// ============================================================
-// Helper: Map ComponentType → React Flow node type
-// ============================================================
-
-export function getNodeType(type: ComponentType): string {
-  switch (type) {
-    case 'INPUT':
-      return 'inputTerminal';
-    case 'OUTPUT':
-      return 'outputTerminal';
-    case 'CLOCK':
-      return 'clockSource';
-    case 'LED':
-      return 'led';
-    case 'SEVEN_SEGMENT':
-      return 'sevenSegment';
-    case 'HALF_ADDER':
-    case 'FULL_ADDER':
-    case 'DECODER':
-    case 'BCD_TO_7SEG':
-    case 'MUX_2TO1':
-    case 'MUX_4TO1':
-    case 'DEMUX_1TO4':
-    case 'SR_LATCH':
-    case 'D_FLIPFLOP':
-    case 'JK_FLIPFLOP':
-    case 'COMPARATOR':
-      return 'ic';
-    case 'IC':
-      return 'ic';
-    case 'JUNCTION':
-      return 'junction';
-    default:
-      return 'gate';
-  }
-}
+// getNodeType is now imported from '@/lib/nodeTypeUtils'
+// Re-export for backwards compatibility with any external consumers
+export { getNodeType } from '../lib/nodeTypeUtils';

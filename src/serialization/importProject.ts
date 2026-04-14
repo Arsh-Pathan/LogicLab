@@ -8,6 +8,7 @@ import {
   ICDefinition,
   LogicProject,
 } from '../types/circuit';
+import { getNodeType } from '@/lib/nodeTypeUtils';
 
 interface ImportResult {
   nodes: Node<CircuitNodeData>[];
@@ -15,25 +16,6 @@ interface ImportResult {
   customICs: ICDefinition[];
   projectName: string;
   projectDescription: string;
-}
-
-/**
- * Get the React Flow node type string from a component type.
- */
-function getNodeType(type: string): string {
-  switch (type) {
-    case 'INPUT': return 'inputTerminal';
-    case 'OUTPUT': return 'outputTerminal';
-    case 'CLOCK': return 'clockSource';
-    case 'LED': return 'led';
-    case 'SEVEN_SEGMENT': return 'sevenSegment';
-    case 'HALF_ADDER':
-    case 'FULL_ADDER':
-    case 'DECODER':
-    case 'IC':
-      return 'ic';
-    default: return 'gate';
-  }
 }
 
 /**
