@@ -8,7 +8,7 @@ import {
   ICDefinition,
   LogicProject,
 } from '../types/circuit';
-import { getNodeType } from '@/lib/nodeTypeUtils';
+import { getNodeType } from '../lib/nodeTypeUtils';
 
 interface ImportResult {
   nodes: Node<CircuitNodeData>[];

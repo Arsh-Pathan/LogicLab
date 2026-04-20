@@ -37,6 +37,7 @@ import { isGateType } from '../engine/gates';
 import { fetchCustomICs } from '../lib/icApi';
 import { icService } from '../lib/services';
 import { getNodeType } from '../lib/nodeTypeUtils';
+import type { WasmEngine } from '../engine/WasmEngine';
 
 // ============================================================
 // Helper: Create default pins for a component type
@@ -258,8 +259,9 @@ interface CircuitState {
   nodes: Node<CircuitNodeData>[];
   edges: Edge[];
 
-  // Engine
-  engine: SimulationEngine;
+  // Engine (SimulationEngine or WasmEngine — same API surface)
+  engine: SimulationEngine | WasmEngine;
+  engineReady: boolean;
   simulationMode: SimulationMode;
 
   // Signal cache for rendering
@@ -325,6 +327,9 @@ interface CircuitState {
   clearCircuit: () => void;
   loadCircuit: (nodes: Node<CircuitNodeData>[], edges: Edge[], customICs?: ICDefinition[]) => void;
 
+  // Engine upgrade
+  initWasmEngine: () => Promise<void>;
+
   // Copied from below
   setClockFrequency: (nodeId: string, frequency: number) => void;
   splitEdge: (edgeId: string, position: XYPosition) => void;
@@ -348,6 +353,7 @@ export const useCircuitStore = create<CircuitState>((set, get) => {
     nodes: [],
     edges: [],
     engine,
+    engineReady: true,
     simulationMode: 'live',
     signalCache: new Map(),
     customICs: fetchCustomICs(),
@@ -827,24 +833,19 @@ export const useCircuitStore = create<CircuitState>((set, get) => {
         type: 'wire',
       }));
 
-      // Rebuild engine
-      state.engine.dispose();
-      const newEngine = new SimulationEngine();
-      newEngine.subscribeAll(() => {
-        get().updateSignalCache();
-      });
+      // Rebuild engine state (clear + rebuild preserves WASM engine if active)
+      state.engine.clear();
       for (const data of entry.nodes) {
-        newEngine.addNode(data);
+        state.engine.addNode(data);
       }
       for (const conn of entry.connections) {
-        newEngine.addConnection(conn);
+        state.engine.addConnection(conn);
       }
-      newEngine.evaluate();
+      state.engine.evaluate();
 
       set({
         nodes: rfNodes,
         edges: rfEdges,
-        engine: newEngine,
         historyIndex: state.historyIndex - 1,
       });
     },
@@ -875,24 +876,19 @@ export const useCircuitStore = create<CircuitState>((set, get) => {
         type: 'wire',
       }));
 
-      // Rebuild engine
-      state.engine.dispose();
-      const newEngine = new SimulationEngine();
-      newEngine.subscribeAll(() => {
-        get().updateSignalCache();
-      });
+      // Rebuild engine state (clear + rebuild preserves WASM engine if active)
+      state.engine.clear();
       for (const data of entry.nodes) {
-        newEngine.addNode(data);
+        state.engine.addNode(data);
       }
       for (const conn of entry.connections) {
-        newEngine.addConnection(conn);
+        state.engine.addConnection(conn);
       }
-      newEngine.evaluate();
+      state.engine.evaluate();
 
       set({
         nodes: rfNodes,
         edges: rfEdges,
-        engine: newEngine,
         historyIndex: nextIndex,
       });
     },
@@ -1044,6 +1040,48 @@ export const useCircuitStore = create<CircuitState>((set, get) => {
         if (renamedIC) icService.saveIC(renamedIC);
         return { customICs: updated };
       });
+    },
+
+    // --------------------------------------------------------
+    // Engine Upgrade (WASM)
+    // --------------------------------------------------------
+
+    initWasmEngine: async () => {
+      try {
+        const { WasmEngine } = await import('../engine/WasmEngine');
+        const wasmEngine = await WasmEngine.create();
+
+        const state = get();
+
+        // Subscribe to the new engine
+        wasmEngine.subscribeAll(() => {
+          get().updateSignalCache();
+        });
+
+        // Transfer current circuit state to WASM engine
+        for (const node of state.nodes) {
+          wasmEngine.addNode(node.data);
+        }
+        for (const edge of state.edges) {
+          wasmEngine.addConnection({
+            id: edge.id,
+            sourceNodeId: edge.source,
+            sourcePinId: edge.sourceHandle ?? '',
+            targetNodeId: edge.target,
+            targetPinId: edge.targetHandle ?? '',
+          });
+        }
+
+        wasmEngine.evaluate();
+
+        // Dispose old engine and swap
+        state.engine.dispose();
+        set({ engine: wasmEngine, engineReady: true });
+
+        console.log('[LogicLab] Upgraded to Rust WASM simulation engine');
+      } catch (err) {
+        console.warn('[LogicLab] WASM engine not available, continuing with TypeScript engine:', err);
+      }
     },
 
     // --------------------------------------------------------
