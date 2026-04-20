@@ -14,4 +14,18 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['logiclab-engine'],
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Heavy vendor libs in separate cacheable chunks
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-reactflow': ['reactflow'],
+          'vendor-three': ['three'],
+          'vendor-gsap': ['gsap'],
+          'vendor-supabase': ['@supabase/supabase-js'],
+        },
+      },
+    },
+  },
 })

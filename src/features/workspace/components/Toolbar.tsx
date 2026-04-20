@@ -107,7 +107,9 @@ export default function Toolbar() {
   const simulationMode = useCircuitStore((s: any) => s.simulationMode);
   const setSimulationMode = useCircuitStore((s: any) => s.setSimulationMode);
 
-  const { theme, toggleTheme, setDragging } = useUIStore();
+  const theme = useUIStore((s: any) => s.theme);
+  const toggleTheme = useUIStore((s: any) => s.toggleTheme);
+  const setDragging = useUIStore((s: any) => s.setDragging);
   const projectName = useProjectStore((s: any) => s.projectName);
 
   const handleDragStart = useCallback((event: DragEvent, type: ComponentType) => {

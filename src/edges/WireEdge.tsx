@@ -6,6 +6,8 @@ import { memo } from 'react';
 import { EdgeProps, getSmoothStepPath } from 'reactflow';
 import { useCircuitStore } from '../store/circuitStore';
 
+const controlsStyle = { cursor: 'copy' } as const;
+
 function WireEdge({
   sourceX,
   sourceY,
@@ -19,11 +21,14 @@ function WireEdge({
 }: EdgeProps) {
   const simulationMode = useCircuitStore((s) => s.simulationMode);
 
-  // Read signal directly from engine via node data
-  const nodes = useCircuitStore((s) => s.nodes);
-  const sourceNode = nodes.find((n) => n.id === source);
-  const pin = sourceNode?.data.outputs.find((p) => p.id === (sourceHandleId ?? 'out'));
-  const signal = pin?.signal ?? 0;
+  // Fine-grained selector: only re-renders when THIS edge's signal changes
+  const signal = useCircuitStore((s) => {
+    const sourceNode = s.nodes.find((n) => n.id === source);
+    if (!sourceNode) return 0;
+    const pin = sourceNode.data.outputs.find((p) => p.id === (sourceHandleId ?? 'out'));
+    return pin?.signal ?? 0;
+  });
+
   const isHigh = signal === 1;
   const isFrozen = simulationMode === 'frozen';
 
@@ -43,6 +48,9 @@ function WireEdge({
       ? 'var(--accent-blue)'
       : 'var(--text-muted)';
 
+  const baseWidth = selected ? 4 : 3;
+  const signalWidth = selected ? 3 : 2;
+
   return (
     <>
       {/* Base track */}
@@ -50,7 +58,7 @@ function WireEdge({
         d={edgePath}
         fill="none"
         stroke="#1e293b"
-        strokeWidth={selected ? 4 : 3}
+        strokeWidth={baseWidth}
         strokeLinecap="round"
       />
 
@@ -59,7 +67,7 @@ function WireEdge({
         d={edgePath}
         fill="none"
         stroke={strokeColor}
-        strokeWidth={selected ? 3 : 2}
+        strokeWidth={signalWidth}
         strokeLinecap="round"
       />
 
@@ -69,7 +77,7 @@ function WireEdge({
         fill="none"
         stroke="transparent"
         strokeWidth={20}
-        style={{ cursor: 'copy' }}
+        style={controlsStyle}
       />
     </>
   );

@@ -173,7 +173,7 @@ a:hover {
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
   white-space: nowrap;
 }
 
@@ -203,7 +203,7 @@ a:hover {
   border: 1px solid var(--border-main);
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
   white-space: nowrap;
 }
 
@@ -226,7 +226,7 @@ a:hover {
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
   white-space: nowrap;
 }
 
@@ -249,7 +249,7 @@ a:hover {
   border: 1px solid var(--border-subtle);
   border-radius: 12px;
   padding: 24px;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
 }
 
 .card:hover {
@@ -279,7 +279,7 @@ a:hover {
   border: 1px solid var(--border-main);
   border-radius: 8px;
   outline: none;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
 }
 
 .input-field:focus {
@@ -352,7 +352,7 @@ a:hover {
   border: none !important;
   border-bottom: none !important;
   color: var(--text-dim) !important;
-  transition: all 0.2s ease !important;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease !important;
   border-radius: 8px !important;
 }
 
@@ -377,7 +377,7 @@ a:hover {
 .react-flow__edge-path {
   stroke: var(--text-muted);
   stroke-width: 2;
-  transition: all 0.3s ease;
+  transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, opacity 0.3s ease;
 }
 
 .react-flow__edge.selected .react-flow__edge-path {

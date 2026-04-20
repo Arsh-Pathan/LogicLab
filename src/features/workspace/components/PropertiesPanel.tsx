@@ -105,8 +105,9 @@ export default function PropertiesPanel() {
                  <Activity size={10} /> Live Diagnostics
                </h4>
                <div className="bg-white/[0.02] rounded-2xl p-6 border border-muted space-y-4">
-                 {selectedNode.data.outputs.map((pin: Pin) => {
+                 {(() => {
                    const nodeOutputs = engine.getNodeOutputs(selectedNode.id);
+                   return selectedNode.data.outputs.map((pin: Pin) => {
                    const val = nodeOutputs.get(pin.id);
                    const isHigh = val === 1;
                    return (
@@ -123,7 +124,8 @@ export default function PropertiesPanel() {
                         </div>
                      </div>
                    );
-                 })}
+                 });
+                 })()}
                </div>
             </div>
 

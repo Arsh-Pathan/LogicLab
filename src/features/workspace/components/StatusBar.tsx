@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useCircuitStore } from '../../../store/circuitStore';
 import { useUIStore } from '../../../store/uiStore';
 import { Zap, Activity, Cpu } from 'lucide-react';
@@ -38,21 +38,22 @@ export default function StatusBar() {
   const setSimulationMode = useCircuitStore((s: any) => s.setSimulationMode);
   const zoomLevel = useUIStore((s: any) => s.zoomLevel);
   
-  const [metrics, setMetrics] = useState({ 
-    evals: 0, 
-    latency: '0.00ms',
-    nodes: 0 
-  });
+  const [metrics, setMetrics] = useState({ evals: 0, latency: '0.00ms', nodes: 0 });
+  const prevRef = useRef({ evals: 0, nodes: 0, latency: '' });
 
   useEffect(() => {
     const interval = setInterval(() => {
       const state = engine.getState();
-      setMetrics({
-        evals: state.evaluationCount,
-        latency: `${state.lastEvaluationTime.toFixed(2)}ms`,
-        nodes: state.nodeCount
-      });
-    }, 100);
+      const latency = `${state.lastEvaluationTime.toFixed(2)}ms`;
+      const prev = prevRef.current;
+      // Only update state if values actually changed
+      if (prev.evals !== state.evaluationCount || prev.nodes !== state.nodeCount || prev.latency !== latency) {
+        prev.evals = state.evaluationCount;
+        prev.nodes = state.nodeCount;
+        prev.latency = latency;
+        setMetrics({ evals: state.evaluationCount, latency, nodes: state.nodeCount });
+      }
+    }, 500);
     return () => clearInterval(interval);
   }, [engine]);
 

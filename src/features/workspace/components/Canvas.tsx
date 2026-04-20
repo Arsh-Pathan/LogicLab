@@ -2,7 +2,7 @@
 // Canvas — Main React Flow canvas component
 // ============================================================
 
-import { useCallback, useRef, useMemo, DragEvent } from 'react';
+import { useCallback, useRef, DragEvent } from 'react';
 import ReactFlow, {
   Background,
   Controls,
@@ -13,19 +13,20 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 
-import { nodeTypes as nodeTypesRegistry } from '../../../nodes/nodeTypes';
-import { edgeTypes as edgeTypesRegistry } from '../../../edges/edgeTypes';
+import { nodeTypes } from '../../../nodes/nodeTypes';
+import { edgeTypes } from '../../../edges/edgeTypes';
 import { useCircuitStore } from '../../../store/circuitStore';
 import { useUIStore } from '../../../store/uiStore';
 import { ComponentType } from '../../../types/circuit';
 
+// Static objects — defined once at module level, never recreated
+const defaultEdgeOptions = { type: 'wire', animated: false, style: { strokeWidth: 2 } } as const;
+const connectionLineStyle = { stroke: '#3b82f6', strokeWidth: 2.5, strokeLinecap: 'round' as const, opacity: 0.6 };
+const controlsStyle = { marginBottom: '112px', marginLeft: '24px' };
+
 export default function Canvas() {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const reactFlowInstance = useRef<ReactFlowInstance | null>(null);
-
-  // Memoize types to prevent React Flow re-render warnings
-  const nodeTypes = useMemo(() => nodeTypesRegistry, []);
-  const edgeTypes = useMemo(() => edgeTypesRegistry, []);
 
   const nodes = useCircuitStore((s: any) => s.nodes);
   const edges = useCircuitStore((s: any) => s.edges);
@@ -140,11 +141,7 @@ export default function Canvas() {
         onSelectionChange={onSelectionChange}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
-        defaultEdgeOptions={{ 
-          type: 'wire', 
-          animated: false,
-          style: { strokeWidth: 2 } 
-        }}
+        defaultEdgeOptions={defaultEdgeOptions}
         snapToGrid={snapToGrid}
         snapGrid={[gridSize, gridSize]}
         selectionOnDrag={true}
@@ -157,12 +154,7 @@ export default function Canvas() {
         minZoom={0.2}
         maxZoom={2}
         connectionLineType={ConnectionLineType.SmoothStep}
-        connectionLineStyle={{ 
-          stroke: '#3b82f6', 
-          strokeWidth: 2.5, 
-          strokeLinecap: 'round',
-          opacity: 0.6
-        }}
+        connectionLineStyle={connectionLineStyle}
         className="react-flow-premium"
         proOptions={{ hideAttribution: true }}
       >
@@ -177,7 +169,7 @@ export default function Canvas() {
         <Controls
           className="!bg-panel !border-border-main !rounded-2xl !backdrop-blur-md opacity-80 [&>button]:!bg-transparent [&>button]:!border-border-muted [&>button]:!text-dim [&>button:hover]:!text-main"
           position="bottom-left"
-          style={{ marginBottom: '112px', marginLeft: '24px' }}
+          style={controlsStyle}
         />
       </ReactFlow>
     </div>
