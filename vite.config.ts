@@ -27,12 +27,19 @@ export default defineConfig({
     chunkSizeWarningLimit: 600,
     rollupOptions: {
       output: {
-        manualChunks: {
-          // Heavy vendor libs in separate cacheable chunks
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-reactflow': ['reactflow'],
-          'vendor-gsap': ['gsap'],
-          'vendor-supabase': ['@supabase/supabase-js'],
+        // Function form: we only chunk vendors that are eagerly needed.
+        // Three.js, @react-three/* are intentionally NOT split here so Rollup
+        // bundles them into the lazy Hero3D dynamic chunk — no modulepreload
+        // tags emitted from the root HTML.
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return;
+          if (id.includes('three') || id.includes('@react-three')) return;
+          if (id.match(/[\\/]node_modules[\\/](react|react-dom|react-router|react-router-dom|scheduler)[\\/]/)) {
+            return 'vendor-react';
+          }
+          if (id.includes('reactflow')) return 'vendor-reactflow';
+          if (id.includes('gsap')) return 'vendor-gsap';
+          if (id.includes('@supabase')) return 'vendor-supabase';
         },
       },
     },

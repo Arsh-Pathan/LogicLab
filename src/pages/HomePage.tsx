@@ -4,6 +4,7 @@ import { ArrowRight, Github, Users, Download, Star, Cpu, Zap, CircuitBoard, Glob
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import HeroVisual from '../features/landing/HeroVisual';
+import Hero3DLazy from '../features/landing/Hero3DLazy';
 import InteractiveDemo from '../features/landing/InteractiveDemo';
 import FeatureGrid from '../features/landing/FeatureGrid';
 import BuildProgression from '../features/landing/BuildProgression';
@@ -91,6 +92,7 @@ export default function HomePage() {
 
       {/* ===== HERO SECTION ===== */}
       <section ref={heroRef} className="relative overflow-hidden min-h-[90vh] flex items-center">
+        {/* Dotted grid */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -100,6 +102,16 @@ export default function HomePage() {
             opacity: 0.4,
           }}
         />
+        {/* Top-edge aurora glow — premium feel */}
+        <div
+          className="absolute inset-x-0 top-0 h-[520px] pointer-events-none"
+          style={{
+            background:
+              'radial-gradient(ellipse 60% 70% at 70% 30%, rgba(167,139,250,0.18), transparent 60%), radial-gradient(ellipse 50% 60% at 30% 20%, rgba(34,211,238,0.18), transparent 60%)',
+            filter: 'blur(20px)',
+          }}
+        />
+        {/* Bottom fade into page */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -164,8 +176,15 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="hero-visual hidden lg:flex items-center justify-center">
-              <HeroVisual />
+            <div className="hero-visual hidden lg:block relative">
+              {/* Premium 3D PCB (loads after first paint, falls back to 2D on small devices) */}
+              <div className="hidden md:block">
+                <Hero3DLazy />
+              </div>
+              {/* Mobile / reduced-motion fallback */}
+              <div className="md:hidden flex items-center justify-center">
+                <HeroVisual />
+              </div>
             </div>
           </div>
         </div>
