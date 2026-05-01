@@ -79,10 +79,17 @@ export default function CircuitBackground() {
       };
       window.addEventListener('mousemove', onMouseMove);
 
+      let visible = true;
+      const observer = typeof IntersectionObserver !== 'undefined'
+        ? new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; }, { rootMargin: '0px' })
+        : null;
+      observer?.observe(container);
+
       let time = 0;
       const animate = () => {
         if (disposed) return;
         animationId = requestAnimationFrame(animate);
+        if (!visible) return;
         time += 0.002;
 
         const positions = geometry.attributes.position.array;
@@ -126,6 +133,7 @@ export default function CircuitBackground() {
         window.removeEventListener('resize', handleResize);
         window.removeEventListener('mousemove', onMouseMove);
         cancelAnimationFrame(animationId);
+        observer?.disconnect();
         geometry.dispose();
         material.dispose();
         particlesGeom.dispose();

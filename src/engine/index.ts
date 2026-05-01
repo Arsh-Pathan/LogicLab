@@ -22,10 +22,10 @@ export async function createEngine(): Promise<
   try {
     const { WasmEngine } = await import('./WasmEngine');
     const engine = await WasmEngine.create();
-    console.log('[LogicLab] Using Rust WASM simulation engine');
+    if (import.meta.env.DEV) console.log('[LogicLab] Using Rust WASM simulation engine');
     return engine;
   } catch (err) {
-    console.warn('[LogicLab] WASM engine failed to load, falling back to TypeScript engine:', err);
+    if (import.meta.env.DEV) console.warn('[LogicLab] WASM engine failed to load, falling back to TypeScript engine:', err);
     const { SimulationEngine } = await import('./SimulationEngine');
     return new SimulationEngine();
   }

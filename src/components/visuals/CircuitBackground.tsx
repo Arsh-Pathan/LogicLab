@@ -7,6 +7,9 @@ export default function CircuitBackground() {
   useEffect(() => {
     if (!svgRef.current) return;
 
+    const svg = svgRef.current;
+    let mouseHandler: ((e: MouseEvent) => void) | null = null;
+
     const ctx = gsap.context(() => {
       // Flowing signals along the curves
       gsap.to('.signal-pulse', {
@@ -14,10 +17,7 @@ export default function CircuitBackground() {
         duration: 4,
         repeat: -1,
         ease: 'none',
-        stagger: {
-          each: 0.8,
-          repeat: -1
-        }
+        stagger: { each: 0.8, repeat: -1 },
       });
 
       // Atmospheric pulsing of nodes
@@ -28,34 +28,36 @@ export default function CircuitBackground() {
         repeat: -1,
         yoyo: true,
         ease: 'sine.inOut',
-        stagger: {
-          amount: 2,
-          from: 'random'
-        }
+        stagger: { amount: 2, from: 'random' },
       });
-      
-      // Proximity glow effect based on mouse movement
-      const handleMouseMove = (e: MouseEvent) => {
-        const { clientX, clientY } = e;
-        const rect = svgRef.current?.getBoundingClientRect();
-        if (rect) {
-          const x = (clientX - rect.left);
-          const y = (clientY - rect.top);
-          gsap.to('.proximity-glow', {
-            cx: x,
-            cy: y,
-            duration: 1.2,
-            ease: 'expo.out'
-          });
-        }
-      };
-      
-      window.addEventListener('mousemove', handleMouseMove);
-      return () => window.removeEventListener('mousemove', handleMouseMove);
 
+      mouseHandler = (e: MouseEvent) => {
+        const { clientX, clientY } = e;
+        const rect = svg.getBoundingClientRect();
+        const x = clientX - rect.left;
+        const y = clientY - rect.top;
+        gsap.to('.proximity-glow', { cx: x, cy: y, duration: 1.2, ease: 'expo.out' });
+      };
     }, svgRef);
 
-    return () => ctx.revert();
+    // Only listen for mousemove while the SVG is on-screen
+    const observer = typeof IntersectionObserver !== 'undefined'
+      ? new IntersectionObserver(([entry]) => {
+          if (!mouseHandler) return;
+          if (entry.isIntersecting) {
+            window.addEventListener('mousemove', mouseHandler, { passive: true });
+          } else {
+            window.removeEventListener('mousemove', mouseHandler);
+          }
+        })
+      : null;
+    observer?.observe(svg);
+
+    return () => {
+      observer?.disconnect();
+      if (mouseHandler) window.removeEventListener('mousemove', mouseHandler);
+      ctx.revert();
+    };
   }, []);
 
   return (

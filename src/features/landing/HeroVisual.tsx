@@ -6,13 +6,21 @@ import { useEffect, useRef } from 'react';
  */
 export default function HeroVisual() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const wrapper = wrapperRef.current;
+    if (!canvas || !wrapper) return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+
+    let visible = true;
+    const observer = typeof IntersectionObserver !== 'undefined'
+      ? new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; }, { rootMargin: '200px' })
+      : null;
+    observer?.observe(wrapper);
 
     const dpr = window.devicePixelRatio || 1;
     const W = 520;
@@ -78,6 +86,10 @@ export default function HeroVisual() {
 
     function draw() {
       if (!ctx) return;
+      if (!visible) {
+        frameId = requestAnimationFrame(draw);
+        return;
+      }
       time += 1;
       ctx.clearRect(0, 0, W, H);
 
@@ -176,11 +188,12 @@ export default function HeroVisual() {
 
     return () => {
       cancelAnimationFrame(frameId);
+      observer?.disconnect();
     };
   }, []);
 
   return (
-    <div className="relative">
+    <div ref={wrapperRef} className="relative">
       <canvas
         ref={canvasRef}
         style={{ width: 520, height: 480 }}

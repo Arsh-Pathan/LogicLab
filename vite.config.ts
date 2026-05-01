@@ -14,14 +14,23 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['logiclab-engine'],
   },
+  esbuild: {
+    // Strip console + debugger statements from production builds
+    drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
+    legalComments: 'none',
+  },
   build: {
+    target: 'es2020',
+    cssCodeSplit: true,
+    sourcemap: false,
+    reportCompressedSize: false,
+    chunkSizeWarningLimit: 600,
     rollupOptions: {
       output: {
         manualChunks: {
           // Heavy vendor libs in separate cacheable chunks
           'vendor-react': ['react', 'react-dom', 'react-router-dom'],
           'vendor-reactflow': ['reactflow'],
-          'vendor-three': ['three'],
           'vendor-gsap': ['gsap'],
           'vendor-supabase': ['@supabase/supabase-js'],
         },

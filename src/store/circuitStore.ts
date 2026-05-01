@@ -359,7 +359,7 @@ export const useCircuitStore = create<CircuitState>((set, get) => {
     customICs: fetchCustomICs(),
     history: [],
     historyIndex: -1,
-    maxHistorySize: 50,
+    maxHistorySize: 30,
     clipboard: null,
 
     // --------------------------------------------------------

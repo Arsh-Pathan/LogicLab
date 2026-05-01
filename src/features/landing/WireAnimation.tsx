@@ -20,12 +20,20 @@ interface Particle {
  */
 export default function WireAnimation() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const wrapper = wrapperRef.current;
+    if (!canvas || !wrapper) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+
+    let visible = true;
+    const observer = typeof IntersectionObserver !== 'undefined'
+      ? new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; }, { rootMargin: '200px' })
+      : null;
+    observer?.observe(wrapper);
 
     const dpr = window.devicePixelRatio || 1;
     let W = canvas.parentElement?.clientWidth || window.innerWidth;
@@ -155,6 +163,11 @@ export default function WireAnimation() {
 
     function draw() {
       if (!ctx) return;
+      // Skip rendering when off-screen — saves ~60 frames/sec of canvas ops
+      if (!visible) {
+        frameId = requestAnimationFrame(draw);
+        return;
+      }
       ctx.clearRect(0, 0, W, H);
 
       // Draw wires
@@ -201,11 +214,12 @@ export default function WireAnimation() {
     return () => {
       window.removeEventListener('resize', resize);
       cancelAnimationFrame(frameId);
+      observer?.disconnect();
     };
   }, []);
 
   return (
-    <div className="w-full overflow-hidden" style={{ height: 200 }}>
+    <div ref={wrapperRef} className="w-full overflow-hidden" style={{ height: 200 }}>
       <canvas ref={canvasRef} />
     </div>
   );
